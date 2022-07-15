@@ -1,0 +1,49 @@
+name: 'PR Deployer'
+description: '"ChatOps" deployer using terraform'
+inputs:
+  gh_token:
+    description: 'The token used to add comments (does not need to be PAT)'
+    required: true
+  terraform_cloud_api_token:
+    description: 'A token for Terraform cloud'
+    required: true
+  terraform_org:
+    description: 'The Terraform cloud organization'
+    required: true
+outputs:
+  error-message:
+    description: "Any errors that occur"
+    value: ""
+  tf-output:
+    description: "Output from terraform output"
+    value: ""
+runs:
+  using: "composite"
+  steps:
+    #- uses: actions/setup-node@v3
+    #  with:
+    #    node-version: 18
+    - name: Add token for private terraform modules
+      id: add-gh-private-token
+      shell: 'bash'
+      run: |
+        git config --local --remove-section http."https://github.com/"
+        git config --global url."https://foo:${GH_TOKEN}@github.com/LCVista".insteadOf "https://github.com/LCVista"
+      env:
+        GH_TOKEN: ${{ inputs.gh_token }}
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        cli_config_credentials_token: ${{ inputs.terraform_cloud_api_token }}
+        terraform_wrapper: false
+    - name: 'Run Script'
+      run: 'node $GITHUB_ACTION_PATH/dist/index.js'
+      shell: 'bash'
+      env:
+        gh_token: ${{ inputs.gh_token }}
+        terraform_cloud_api_token: ${{ inputs.terraform_cloud_api_token }}
+        terraform_org: ${{ inputs.terraform_org }}
+
+branding:
+  icon: 'target'
+  color: 'gray-dark'
