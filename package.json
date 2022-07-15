@@ -14,19 +14,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/peter-evans/slash-command-dispatch.git"
+    "url": "git+https://github.com/LCVista/devops-pr-deployer.git"
   },
-  "keywords": [
-    "slash",
-    "command",
-    "dispatch"
-  ],
-  "author": "Peter Evans",
+  "keywords": [  ],
+  "author": "LCvista",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/peter-evans/slash-command-dispatch/issues"
+    "url": "https://github.com/LCVista/devops-pr-deployer/issues"
   },
-  "homepage": "https://github.com/peter-evans/slash-command-dispatch#readme",
+  "homepage": "https://github.com/LCVista/devops-pr-deployer#readme",
   "dependencies": {
     "@actions/core": "^1.6.0",
     "@actions/github": "^5.0.0",
