@@ -23,12 +23,14 @@ export async function handleSlashCommand(
         console.log("Received /help command");
         await githubHelper.addReaction(commentId, "eyes");
         await githubHelper.addComment(HELP_TEXT);
+        await githubHelper.addReaction(commentId, "rocket");
         return;
     } else if (firstLine.startsWith('/destroy')) {
         console.log("Received /destroy command");
         await githubHelper.addReaction(commentId, "eyes");
         await handlePrClosed(tfcApi, tfcCli, githubHelper);
         await githubHelper.addReaction(commentId, "rocket");
+        return;
     } else if (firstLine.startsWith('/deploy')) {
         console.log("Received /deploy command");
         await githubHelper.addReaction(commentId, "eyes");
@@ -87,6 +89,7 @@ export async function handleSlashCommand(
 
         await githubHelper.addComment(output);
         await githubHelper.addReaction(commentId, "rocket");
+        return;
 
     } else {
         console.debug(
