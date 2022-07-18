@@ -44,12 +44,13 @@ async function run(): Promise<void> {
         const repo: string = github.context.payload.repository.name
         const repo_owner: string = String(github.context.payload.repository.owner.login)
         let githubHelper = new GithubHelper(octokit, repo_owner, repo_owner, issue_number)
-        core.debug(`PR Looking at PR: ${repo_owner}/${repo}#${issue_number}`)
+        console.log(`PR Looking at PR: ${repo_owner}/${repo}#${issue_number}`)
 
         let prInfo = await githubHelper.getPullRequest();
         let workspaceName = `${workspacePrefix}${prInfo.branch}`;
         let tfcApi = new TerraformCloudApi(tfc_api_token, tfc_org, workspaceName);
         let tfcCli = new TerraformCli(tfc_org, workspaceName);
+        console.log(`Workspace name=${workspaceName}, branch=${prInfo.branch}, sha1=${prInfo.sha1}`);
 
         if (github.context.eventName === 'issue_comment') {
             if (!github.context.payload.comment) {
@@ -57,8 +58,8 @@ async function run(): Promise<void> {
             }
             const commentBody: string = github.context.payload.comment.body
             const commentId: number = github.context.payload.comment.id
-            core.debug(`Comment body: ${commentBody}`)
-            core.debug(`Comment id: ${commentId}`)
+            console.log(`Comment body: ${commentBody}`)
+            console.log(`Comment id: ${commentId}`)
 
             console.log("Slash Command");
             try {
