@@ -6,7 +6,7 @@ import {TerraformCloudApi} from "./tfc_api";
 import {TerraformCli} from "./tfc_cli";
 import {GithubHelper} from "./gh_helper";
 
-const github_token = core.getInput('gh_token') || process.env['gh_token'];
+const github_token = core.getInput('gh_comment_token') || process.env['gh_comment_token'];
 const tfc_api_token = core.getInput('terraform_cloud_api_token') || process.env['terraform_cloud_api_token'];
 const tfc_org = core.getInput('terraform_org') || process.env['terraform_org'];
 const workspacePrefix = 'zpr-';
