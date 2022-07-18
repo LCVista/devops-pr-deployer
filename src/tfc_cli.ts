@@ -50,6 +50,11 @@ export class TerraformCli {
         return this.__exec('terraform output -no-color');
     }
 
+    public tfOutputOneVariable(variableName: string): string {
+
+        return this.__exec(`terraform output -no-color --raw ${variableName}`);
+    }
+
     public tfDestroy(): string {
         return this.__exec('terraform destroy --auto-approve')
     }

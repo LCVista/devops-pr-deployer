@@ -19,7 +19,7 @@ export async function handleSlashCommand(
         )
         return;
     }
-    if (firstLine.startsWith('/help')){
+    if (firstLine.startsWith('/help')) {
         console.log("Received /help command");
         await githubHelper.addReaction(commentId, "eyes");
         await githubHelper.addComment(HELP_TEXT);
@@ -84,10 +84,16 @@ export async function handleSlashCommand(
         // apply the plan
         tfcCli.tfApply()
 
+        let previewUrl = tfcCli.tfOutputOneVariable("preview_url");
+        console.log(`preview_url=${previewUrl}`);
+
         let output = tfcCli.tfOutput();
         console.log(output);
 
-        await githubHelper.addComment(output);
+        await githubHelper.addComment(`Environment is ready at [${previewUrl}](${previewUrl})` +
+            "\n\n" +
+            "```" +
+            output + "```");
         await githubHelper.addReaction(commentId, "rocket");
         return;
 
