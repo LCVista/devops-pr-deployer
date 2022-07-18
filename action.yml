@@ -44,8 +44,7 @@ runs:
       run: 'node $GITHUB_ACTION_PATH/dist/index.js'
       shell: 'bash'
       env:
-        gh_pat_token: ${{ inputs.gh_pat_token }}
-        gh_comment_token: ${{ inputs.gh_comment_token }}
+        gh_token: ${{ inputs.gh_comment_token }}
         terraform_cloud_api_token: ${{ inputs.terraform_cloud_api_token }}
         terraform_org: ${{ inputs.terraform_org }}
 
