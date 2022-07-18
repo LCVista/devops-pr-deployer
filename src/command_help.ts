@@ -22,7 +22,9 @@ These variables are calculated and provided by the tool:
 
 If preview_url is provided as output, it will be formatted at the top of the success message.
 
+Look at any *.tf files in the root director of this repository to see what variables are allowed in this project. 
+
 Lastly, closing or merging the PR will result in destroying the workspace.
 
-Specific information about this environment:
+Specific information about this environment (terraform show):
 `;

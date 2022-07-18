@@ -47,7 +47,7 @@ export class TerraformCli {
     }
 
     public tfShow(): string {
-        return this.__exec('terraform plan -no-color && terraform show -no-color');
+        return this.__exec('terraform show -no-color');
     }
 
     public tfApply(): string {
