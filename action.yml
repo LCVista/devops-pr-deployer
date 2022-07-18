@@ -20,9 +20,6 @@ outputs:
   error-message:
     description: "Any errors that occur"
     value: ""
-  tf-output:
-    description: "Output from terraform output"
-    value: ""
 runs:
   using: "composite"
   steps:

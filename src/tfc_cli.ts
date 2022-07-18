@@ -1,43 +1,56 @@
+import fs from "fs";
 const { execSync } = require("child_process");
 
-function __exec(command) : string {
-    try {
-        console.log(command);
-        let stdout = execSync(command);
-        return stdout.toString();
-    } catch (error: any) {
-        if (error && error.stdout) {
-            throw Error(error.stdout.toString());
-        } else {
-            throw error;
+export class TerraformCli {
+    public readonly orgId: string;
+    public readonly workspaceName: string;
+
+    constructor(orgId: string, workspaceName: string) {
+        this.orgId = orgId;
+        this.workspaceName = workspaceName;
+    }
+
+    private __exec(command) : string {
+        try {
+            console.log(command);
+            let stdout = execSync(command);
+            console.log(stdout);
+            return stdout.toString();
+        } catch (error: any) {
+            if (error && error.stdout) {
+                console.log(error.stdout);
+                throw Error(error.stdout.toString());
+            } else {
+                console.log(error);
+                throw error;
+            }
         }
     }
-}
 
-export function tfInit(orgId, workspaceName) : string {
-    const TERRAFORM_HEADER = `terraform {
+    public tfInit() : string {
+        const TERRAFORM_HEADER = `terraform {
   cloud {
     hostname     = "app.terraform.io"
-    organization = "${orgId}"
+    organization = "${this.orgId}"
     workspaces {
-      name = "${workspaceName}"
+      name = "${this.workspaceName}"
     }
   }
 }`;
-    const fs = require("fs");
-    fs.writeFileSync('terraform.tf', TERRAFORM_HEADER, 'utf-8');
+        fs.writeFileSync('terraform.tf', TERRAFORM_HEADER, 'utf-8');
 
-    return __exec('terraform init -input=false');
-}
+        return this.__exec('terraform init -input=false');
+    }
 
-export function tfApply(): string {
-    return __exec('terraform apply --auto-approve');
-}
+    public tfApply(): string {
+        return this.__exec('terraform apply --auto-approve');
+    }
 
-export function tfOutput(): string {
-    return __exec('terraform output -no-color');
-}
+    public tfOutput(): string {
+        return this.__exec('terraform output -no-color');
+    }
 
-export function tfDestroy(): string {
-    return __exec('terraform destroy --auto-approve')
+    public tfDestroy(): string {
+        return this.__exec('terraform destroy --auto-approve')
+    }
 }
