@@ -1,4 +1,4 @@
-import * as globalFetch from 'node-fetch';
+import fetch from 'node-fetch';
 
 type ExistingVar = {
     id: string,
@@ -24,7 +24,7 @@ export class TerraformCloudApi {
         this.orgId = orgId;
         this.workspaceName = workspaceName;
         // for mocking
-        this.__fetch = fetchMock ? fetchMock : globalFetch;
+        this.__fetch = fetchMock ? fetchMock : fetch;
     }
 
     public async setVariable(workspaceId, existingValue, name, value): Promise<boolean> {
