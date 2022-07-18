@@ -16,11 +16,11 @@ export class TerraformCli {
         try {
             console.log(command);
             let stdout = execSync(command);
-            console.log(stdout);
+            console.log(stdout.toString());
             return stdout.toString();
         } catch (error: any) {
             if (error && error.stdout) {
-                console.log(error.stdout);
+                console.log(error.stdout.toString());
                 throw Error(error.stdout.toString());
             } else {
                 console.log(error);
@@ -47,7 +47,7 @@ export class TerraformCli {
     }
 
     public tfShow(): string {
-        return this.__exec('terraform show -no-color');
+        return this.__exec('terraform plan -no-color && terraform show -no-color');
     }
 
     public tfApply(): string {
