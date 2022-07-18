@@ -13,9 +13,11 @@ export class TerraformCloudApi {
     public readonly baseDomain: string;
     private readonly __fetch: (url, opts) => Promise<any>;
 
-    constructor(tfcApiToken: string, orgId: string, workspaceName: string);
-    constructor(tfcApiToken: string, orgId: string, workspaceName: string,
-                baseDomain?: string, fetchMock?: (url, opts) => Promise<any>
+    constructor(tfcApiToken: string,
+                orgId: string,
+                workspaceName: string,
+                baseDomain: string | undefined = undefined,
+                fetchMock: ((url, opts) => Promise<any>) | undefined = undefined
     ) {
         this.baseDomain = baseDomain ? baseDomain : "app.terraform.io";
         this.tfcApiToken = tfcApiToken;
