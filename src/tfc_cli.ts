@@ -39,11 +39,11 @@ export class TerraformCli {
 }`;
         fs.writeFileSync('terraform.tf', TERRAFORM_HEADER, 'utf-8');
 
-        return this.__exec('terraform init -input=false');
+        return this.__exec('terraform init -no-color -input=false');
     }
 
     public tfApply(): string {
-        return this.__exec('terraform apply --auto-approve');
+        return this.__exec('terraform apply -no-color --auto-approve');
     }
 
     public tfOutput(): string {
@@ -56,6 +56,6 @@ export class TerraformCli {
     }
 
     public tfDestroy(): string {
-        return this.__exec('terraform destroy --auto-approve')
+        return this.__exec('terraform destroy -no-color --auto-approve')
     }
 }

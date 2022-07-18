@@ -20,7 +20,7 @@ export class GithubHelper {
     }
 
     async addComment(body: string): Promise<boolean> {
-        
+
         const { data: comment } = await this.octokit.rest.issues.createComment({
             owner: this.repo_owner,
             repo: this.repo,
