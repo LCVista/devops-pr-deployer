@@ -22,7 +22,8 @@ export async function handleSlashCommand(
     if (firstLine.startsWith('/help')) {
         console.log("Received /help command");
         await githubHelper.addReaction(commentId, "eyes");
-        await githubHelper.addComment(HELP_TEXT);
+        let availableVariables = tfcCli.tfShow();
+        await githubHelper.addComment(HELP_TEXT + "\n\n" + "```" + availableVariables + "```");
         await githubHelper.addReaction(commentId, "rocket");
         return;
     } else if (firstLine.startsWith('/destroy')) {
