@@ -1,8 +1,14 @@
 name: 'PR Deployer'
 description: '"ChatOps" deployer using terraform'
 inputs:
-  gh_token:
+  gh_comment_token:
     description: 'The token used to add comments (does not need to be PAT)'
+    required: true
+  gh_pat_token:
+    description: 'The token used to read private terraform modules'
+    required: true
+  gh_org_name:
+    description: 'The organization name where private terraform modules are located'
     required: true
   terraform_cloud_api_token:
     description: 'A token for Terraform cloud'
@@ -28,9 +34,10 @@ runs:
       shell: 'bash'
       run: |
         git config --local --remove-section http."https://github.com/"
-        git config --global url."https://foo:${GH_TOKEN}@github.com/LCVista".insteadOf "https://github.com/LCVista"
+        git config --global url."https://foo:${GH_TOKEN}@github.com/${GH_ORG_NAME}".insteadOf "https://github.com/${GH_ORG_NAME}"
       env:
-        GH_TOKEN: ${{ inputs.gh_token }}
+        GH_TOKEN: ${{ inputs.gh_pat_token }}
+        GH_ORG_NAME: ${{ inputs.gh_org_name }}
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
       with:
@@ -40,7 +47,7 @@ runs:
       run: 'node $GITHUB_ACTION_PATH/dist/index.js'
       shell: 'bash'
       env:
-        gh_token: ${{ inputs.gh_token }}
+        gh_token: ${{ inputs.gh_comment_token }}
         terraform_cloud_api_token: ${{ inputs.terraform_cloud_api_token }}
         terraform_org: ${{ inputs.terraform_org }}
 
