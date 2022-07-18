@@ -15,14 +15,14 @@ export class TerraformCloudApi {
 
     constructor(tfcApiToken: string, orgId: string, workspaceName: string);
     constructor(tfcApiToken: string, orgId: string, workspaceName: string,
-                baseDomain?: string, fetch?: (url, opts) => Promise<any>
+                baseDomain?: string, fetchMock?: (url, opts) => Promise<any>
     ) {
         this.baseDomain = baseDomain ? baseDomain : "app.terraform.io";
         this.tfcApiToken = tfcApiToken;
         this.orgId = orgId;
         this.workspaceName = workspaceName;
         // for mocking
-        this.__fetch = fetch ? fetch : globalFetch;
+        this.__fetch = fetchMock ? fetchMock : globalFetch;
     }
 
     public async setVariable(workspaceId, existingValue, name, value): Promise<boolean> {
