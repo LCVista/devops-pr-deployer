@@ -26,6 +26,9 @@ runs:
     #- uses: actions/setup-node@v3
     #  with:
     #    node-version: 18
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
     - name: Add token for private terraform modules
       id: add-gh-private-token
       shell: 'bash'
