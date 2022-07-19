@@ -26,9 +26,15 @@ runs:
     #- uses: actions/setup-node@v3
     #  with:
     #    node-version: 18
+    - run: echo ::set-output name=branch::$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')
+      shell: 'bash'
+      env:
+        REPO: ${{ github.repository }}
+        PR_NO: ${{ github.event.issue.number }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - uses: actions/checkout@v3
       with:
-        ref: ${{ github.event.pull_request.head.sha }}
+        ref: ${{ steps.get-branch.outputs.branch }}
     - name: Add token for private terraform modules
       id: add-gh-private-token
       shell: 'bash'
