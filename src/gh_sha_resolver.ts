@@ -5,7 +5,7 @@ import {getIssueNumber, GithubHelper} from "./gh_helper";
 
 (async () => {
     try {
-        const githubToken = core.getInput('gh_token');
+        const githubToken = core.getInput('gh_token') || process.env['gh_token'];
 
         if (!github.context.payload.repository) {
             throw new Error('github.context.payload.repository is missing.')
