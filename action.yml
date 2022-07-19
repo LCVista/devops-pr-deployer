@@ -26,16 +26,14 @@ runs:
     #- uses: actions/setup-node@v3
     #  with:
     #    node-version: 18
-    - name: 'Resolve PR branch sha1 to use terraform files in PR'
-      run: echo ::set-output name=branch::$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')
-      shell: 'bash'
-      env:
-        REPO: ${{ github.repository }}
-        PR_NO: ${{ github.event.issue.number }}
-        GITHUB_TOKEN: ${{ inputs.gh_comment_token }}
+    - name: resolve pr refs
+      id: refs
+      uses: eficode/resolve-pr-refs@main
+      with:
+        token: ${{ inputs.gh_comment_token }}
     - uses: actions/checkout@v3
       with:
-        ref: ${{ steps.get-branch.outputs.branch }}
+        ref: ${{ steps.refs.outputs.head_ref }}
     - name: Add token for private terraform modules
       id: add-gh-private-token
       shell: 'bash'
