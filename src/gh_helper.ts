@@ -56,7 +56,7 @@ export class GithubHelper {
 
         return {
             branch: pullRequest.head.ref,
-            sha1: pullRequest.head.sha1
+            sha1: pullRequest.head.sha
         }
     }
 }

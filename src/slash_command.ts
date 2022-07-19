@@ -80,7 +80,7 @@ export async function handleSlashCommand(
 
         if (!allSet) {
             console.log("not all variables were set");
-            process.exit(1);
+            throw new Error ("Not all variables were set");
         }
 
         // apply the plan
