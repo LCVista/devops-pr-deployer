@@ -26,14 +26,15 @@ runs:
     #- uses: actions/setup-node@v3
     #  with:
     #    node-version: 18
-    - name: resolve pr refs
-      id: refs
-      uses: eficode/resolve-pr-refs@main
-      with:
-        token: ${{ inputs.gh_comment_token }}
+    - id: refs
+      name: resolve pr refs
+      run: 'node $GITHUB_ACTION_PATH/dist/gh_sha_resolver.js'
+      shell: 'bash'
+      env:
+        gh_token: ${{ inputs.gh_comment_token }}
     - uses: actions/checkout@v3
       with:
-        ref: ${{ steps.refs.outputs.head_ref }}
+        ref: ${{ steps.refs.outputs.head_sha }}
     - name: Add token for private terraform modules
       id: add-gh-private-token
       shell: 'bash'

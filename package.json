@@ -10,7 +10,7 @@
     "lint": "eslint src/**/*.ts",
     "test": "yarn jest --coverage",
     "prebuild": "rm -rf dist",
-    "build": "esbuild src/main.ts --bundle --minify --sourcemap --platform=node --target=es6 --outfile=dist/index.js"
+    "build": "esbuild src/main.ts --bundle --minify --sourcemap --platform=node --target=es6 --outfile=dist/index.js && esbuild src/gh_sha_resolver.ts --bundle --minify --sourcemap --platform=node --target=es6 --outfile=dist/gh_sha_resolver.js"
   },
   "repository": {
     "type": "git",

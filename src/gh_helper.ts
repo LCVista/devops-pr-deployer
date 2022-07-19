@@ -60,3 +60,12 @@ export class GithubHelper {
         }
     }
 }
+
+export function getIssueNumber(github) : number {
+    if (github.context.payload.issue) {
+        return github.context.payload.issue.number
+    } else if (github.context.payload.pull_request) {
+        return github.context.payload.pull_request.number
+    }
+    throw new Error('PR/Issue number is is missing.  I need it for all events');
+}

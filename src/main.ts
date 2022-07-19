@@ -4,7 +4,7 @@ import {handleSlashCommand} from "./slash_command";
 import {handlePrClosed} from "./pr_closed";
 import {TerraformCloudApi} from "./tfc_api";
 import {TerraformCli} from "./tfc_cli";
-import {GithubHelper} from "./gh_helper";
+import {getIssueNumber, GithubHelper} from "./gh_helper";
 
 const github_token = core.getInput('gh_comment_token') || process.env['gh_comment_token'];
 const tfc_api_token = core.getInput('terraform_cloud_api_token') || process.env['terraform_cloud_api_token'];
@@ -34,15 +34,6 @@ async function run(): Promise<void> {
         // Check required context properties exist (satisfy type checking)
         if (!github.context.payload.repository) {
             throw new Error('github.context.payload.repository is missing.')
-        }
-
-        function getIssueNumber(github) : number {
-            if (github.context.payload.issue) {
-                return github.context.payload.issue.number
-            } else if (github.context.payload.pull_request) {
-                return github.context.payload.pull_request.number
-            }
-            throw new Error('PR/Issue number is is missing.  I need it for all events');
         }
 
         let octokit = github.getOctokit(github_token);
