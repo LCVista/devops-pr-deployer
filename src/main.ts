@@ -35,12 +35,18 @@ async function run(): Promise<void> {
         if (!github.context.payload.repository) {
             throw new Error('github.context.payload.repository is missing.')
         }
-        if (!github.context.payload.issue) {
-            throw new Error('github.context.payload.issue is missing.')
+
+        function getIssueNumber(github) : number {
+            if (github.context.payload.issue) {
+                return github.context.payload.issue.number
+            } else if (github.context.payload.pull_request) {
+                return github.context.payload.pull_request.number
+            }
+            throw new Error('PR/Issue number is is missing.  I need it for all events');
         }
 
         let octokit = github.getOctokit(github_token);
-        const issue_number: number = github.context.payload.issue.number
+        const issue_number: number = getIssueNumber(github);
         const repo: string = github.context.payload.repository.name
         const repo_owner: string = String(github.context.payload.repository.owner.login)
         let githubHelper = new GithubHelper(octokit, repo_owner, repo, issue_number)
