@@ -26,7 +26,8 @@ runs:
     #- uses: actions/setup-node@v3
     #  with:
     #    node-version: 18
-    - run: echo ::set-output name=branch::$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')
+    - name: 'Resolve PR branch sha1 to use terraform files in PR'
+      run: echo ::set-output name=branch::$(gh pr view $PR_NO --repo $REPO --json headRefName --jq '.headRefName')
       shell: 'bash'
       env:
         REPO: ${{ github.repository }}
