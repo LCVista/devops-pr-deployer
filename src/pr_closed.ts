@@ -7,10 +7,14 @@ export async function handlePrClosed(
     tfcCli: TerraformCli,
     ghHelper: GithubHelper
 ){
-    let outputInit = tfcCli.tfInit();
-    console.log(outputInit);
-    let outputDestroy = tfcCli.tfDestroy();
-    console.log(outputDestroy);
+    try {
+        let outputInit = tfcCli.tfInit();
+        console.log(outputInit);
+        let outputDestroy = tfcCli.tfDestroy();
+        console.log(outputDestroy);
+    } catch (e: any) {
+        console.log('Workspace may not have been initialized', e);
+    }
 
     let result = await tfcApi.deleteWorkspace();
     if (result) {

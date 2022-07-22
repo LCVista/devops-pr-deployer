@@ -60,7 +60,7 @@ export async function handleSlashCommand(
 
         let variables = extractVars(firstLine.slice(7).trim());
 
-        console.log(`Received variables ${variables}`);
+        console.log(`Received variables `, variables);
 
         for (let key in variables) {
             if (key !== 'env_vars') {

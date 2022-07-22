@@ -5,17 +5,24 @@ export class TerraformCli {
     public readonly orgId: string;
     public readonly workspaceName: string;
     public readonly baseDomain: string;
+    private readonly exec: (string) => Buffer;
 
-    constructor(orgId: string, workspaceName: string, baseDomain: string | undefined = undefined) {
+    constructor(
+        orgId: string,
+        workspaceName: string,
+        baseDomain: string | undefined = undefined,
+        exec: ((string) => Buffer) | undefined = undefined
+    ) {
         this.baseDomain = baseDomain ? baseDomain : "app.terraform.io";
         this.orgId = orgId;
         this.workspaceName = workspaceName;
+        this.exec = exec ? exec : execSync;
     }
 
     private __exec(command) : string {
         try {
             console.log(command);
-            let stdout = execSync(command);
+            let stdout = this.exec(command);
             console.log(stdout.toString());
             return stdout.toString();
         } catch (error: any) {
