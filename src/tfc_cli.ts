@@ -26,12 +26,19 @@ export class TerraformCli {
             console.log(stdout.toString());
             return stdout.toString();
         } catch (error: any) {
-            if (error && error.stdout) {
-                console.log(error.stdout.toString());
+            if (error) {
+                let errorMessage: string = "";
+                if (error.stderr) {
+                    errorMessage += error.stderr.toString() + "\n";
+                }
+                if (error.stdout) {
+                    errorMessage += error.stdout.toString() + "\n";
+                }
+                console.log(errorMessage);
                 throw Error(error.stdout.toString());
             } else {
-                console.log(error);
-                throw error;
+                console.log("Error object was null");
+                throw Error("Unknown error and error object was null");
             }
         }
     }
