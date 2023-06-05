@@ -21,11 +21,13 @@ export class TerraformCli {
 
     private __exec(command) : string {
         try {
+            console.log("Running exec command:");
             console.log(command);
             let stdout = this.exec(command);
             console.log(stdout.toString());
             return stdout.toString();
         } catch (error: any) {
+            console.log("I received an error running the exec command");
             if (error) {
                 let errorMessage: string = "";
                 if (error.stderr) {
@@ -35,7 +37,7 @@ export class TerraformCli {
                     errorMessage += error.stdout.toString() + "\n";
                 }
                 console.log(errorMessage);
-                throw Error(error.stdout.toString());
+                throw Error(errorMessage);
             } else {
                 console.log("Error object was null");
                 throw Error("Unknown error and error object was null");
