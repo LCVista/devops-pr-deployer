@@ -40,13 +40,13 @@ runs:
       with:
         cli_config_credentials_token: ${{ inputs.terraform_cloud_api_token }}
         terraform_wrapper: false
-#    - name: Add token for private terraform modules
-#      id: add-gh-private-token
-#      shell: 'bash'
-#      # git config --global url."https://${GH_TOKEN}@github.com/${GH_ORG_NAME}".insteadOf "https://github.com/${GH_ORG_NAME}"
-#      run: |
-#        git config --local --remove-section http."https://github.com/"
-#        git config --global url."https://${GH_TOKEN}@github.com".insteadOf "https://github.com"
+    - name: Add token for private terraform modules
+      id: add-gh-private-token
+      shell: 'bash'
+      # git config --global url."https://${GH_TOKEN}@github.com/${GH_ORG_NAME}".insteadOf "https://github.com/${GH_ORG_NAME}"
+      run: |
+        git config --local --remove-section http."https://github.com/"
+        git config --global url."https://${GH_TOKEN}@github.com".insteadOf "https://github.com"
       env:
         GH_TOKEN: ${{ inputs.gh_pat_token }}
         GH_ORG_NAME: ${{ inputs.gh_org_name }}
