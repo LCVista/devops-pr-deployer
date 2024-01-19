@@ -23,9 +23,9 @@ outputs:
 runs:
   using: "composite"
   steps:
-    #- uses: actions/setup-node@v3
-    #  with:
-    #    node-version: 18
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 18
     - id: refs
       name: resolve pr refs
       run: 'node $GITHUB_ACTION_PATH/dist/gh_sha_resolver.js'
@@ -35,11 +35,6 @@ runs:
     - uses: actions/checkout@v3
       with:
         ref: ${{ steps.refs.outputs.head_sha }}
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1.4.0
-      with:
-        cli_config_credentials_token: ${{ inputs.terraform_cloud_api_token }}
-        terraform_wrapper: false
     - name: Add token for private terraform modules
       id: add-gh-private-token
       shell: 'bash'
@@ -50,6 +45,11 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.gh_pat_token }}
         GH_ORG_NAME: ${{ inputs.gh_org_name }}
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3.0.0
+      with:
+        cli_config_credentials_token: ${{ inputs.terraform_cloud_api_token }}
+        terraform_wrapper: false
     - name: 'Run Script'
       run: 'node $GITHUB_ACTION_PATH/dist/index.js'
       shell: 'bash'
