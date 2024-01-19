@@ -35,16 +35,6 @@ runs:
     - uses: actions/checkout@v3
       with:
         ref: ${{ steps.refs.outputs.head_sha }}
-    - name: Add token for private terraform modules
-      id: add-gh-private-token
-      shell: 'bash'
-      # git config --global url."https://${GH_TOKEN}@github.com/${GH_ORG_NAME}".insteadOf "https://github.com/${GH_ORG_NAME}"
-      run: |
-        git config --local --remove-section http."https://github.com/"
-        git config --global url."https://${GH_TOKEN}@github.com".insteadOf "https://github.com"
-      env:
-        GH_TOKEN: ${{ inputs.gh_pat_token }}
-        GH_ORG_NAME: ${{ inputs.gh_org_name }}
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3.0.0
       with:
