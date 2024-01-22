@@ -6,6 +6,9 @@ type ExistingVar = {
     value: string
 }
 
+// this key id maps to a key that has been uploaded to TFC
+const TFC_SSH_KEY_ID = "aws-infrastructure-deploy-key"
+
 export class TerraformCloudApi {
     private readonly tfcApiToken: string;
     public readonly orgId: string;
@@ -69,6 +72,34 @@ export class TerraformCloudApi {
 
         if (response.ok) {
             return true;
+        } else {
+            console.log("Did not get OK response from terraform API");
+            console.log(response.status, response.statusText);
+            console.log(await response.json());
+            return false;
+        }
+    }
+
+    public async assignKey(workspaceId, tfcKeyName): Promise<boolean> {
+        const url = `https://${this.baseDomain}/api/v2/workspaces/${workspaceId}/relationships/ssh-key`
+        const response = await this.__fetch(url, {
+            method: 'POST',
+            headers: {
+                "Authorization": `Bearer ${this.tfcApiToken}`,
+                "Content-Type": "application/vnd.api+json",
+            },
+            body: {
+                "data": {
+                    "attributes": {
+                        "id": tfcKeyName
+                    },
+                    "type": "workspaces"
+                }
+            }
+        })
+
+        if (response.ok) {
+            return true
         } else {
             console.log("Did not get OK response from terraform API");
             console.log(response.status, response.statusText);
