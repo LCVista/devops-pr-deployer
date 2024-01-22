@@ -39,14 +39,9 @@ export async function handleSlashCommand(
 
         tfcCli.tfInit();
 
+        // handle input vars here
         let workspaceId = await tfcApi.getWorkspaceId();
         console.log(`workspaceId = ${workspaceId}`);
-        
-        // setup ssh key for pulling tf modules from aws-infrastructure
-        // this key name maps to an ssh private key that is configured within TFC
-        tfcApi.assignKey(workspaceId, "aws-infrastructure-deploy-key")
-
-        // handle input vars here
         let existingVars = await tfcApi.getExistingVars(workspaceId);
         console.log(`existingVars= ${existingVars}`);
 
@@ -90,7 +85,6 @@ export async function handleSlashCommand(
 
         // apply the plan
         tfcCli.tfApply()
-
 
         let previewUrl = tfcCli.tfOutputOneVariable("preview_url");
         console.log(`preview_url=${previewUrl}`);
