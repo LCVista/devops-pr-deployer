@@ -6,9 +6,6 @@ type ExistingVar = {
     value: string
 }
 
-// this key id maps to a key that has been uploaded to TFC
-const TFC_SSH_KEY_ID = "aws-infrastructure-deploy-key"
-
 export class TerraformCloudApi {
     private readonly tfcApiToken: string;
     public readonly orgId: string;
