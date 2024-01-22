@@ -5,7 +5,6 @@ export class TerraformCli {
     public readonly orgId: string;
     public readonly workspaceName: string;
     public readonly baseDomain: string;
-    public readonly githubToken: string;
     private readonly exec: (string) => Buffer;
 
     constructor(
@@ -17,7 +16,6 @@ export class TerraformCli {
         this.baseDomain = baseDomain ? baseDomain : "app.terraform.io";
         this.orgId = orgId;
         this.workspaceName = workspaceName;
-        this.githubToken = github
         this.exec = exec ? exec : execSync;
     }
 
@@ -48,13 +46,18 @@ export class TerraformCli {
     }
 
     public tfInit(): string {
-        // customize terraform code for this PR/branch
-        let terraformCode = fs.readFileSync('pr-env.tf');
-        terraformCode = terraformCode.replace('$BASE_DOMAIN', this.baseDomain);
-        terraformCode = terraformCode.replace('$ORG_ID', this.orgId);
-        terraformCode = terraformCode.replace('$WORKSPACE_NAME', this.workspaceName);
-        terraformCode = terraformCode.replace('$GITHUB_TOKEN', this.githubToken);
-        fs.writeFileSync('pr-env.tf', terraformCode, 'utf-8');
+        // Because the workspace name is calculated per PR,
+        // this terraform cloud setting needs to be set before CLI commands can be called.
+        const TERRAFORM_HEADER = `terraform {
+  cloud {
+    hostname     = "${this.baseDomain}"
+    organization = "${this.orgId}"
+    workspaces {
+      name = "${this.workspaceName}"
+    }
+  }
+}`;
+        fs.writeFileSync('terraform.tf', TERRAFORM_HEADER, 'utf-8');
 
         return this.__exec('terraform init -no-color -input=false');
     }

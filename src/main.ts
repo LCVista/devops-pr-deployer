@@ -46,7 +46,7 @@ async function run(): Promise<void> {
         let prInfo = await githubHelper.getPullRequest();
         let workspaceName = `${workspacePrefix}${prInfo.branch}`;
         let tfcApi = new TerraformCloudApi(tfc_api_token, tfc_org, workspaceName);
-        let tfcCli = new TerraformCli(github_token, tfc_org, workspaceName);
+        let tfcCli = new TerraformCli(tfc_org, workspaceName);
         console.log(`Workspace name=${workspaceName}, branch=${prInfo.branch}, sha1=${prInfo.sha1}`);
 
         if (github.context.eventName === 'issue_comment') {
