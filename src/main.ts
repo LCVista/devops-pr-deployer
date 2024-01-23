@@ -16,36 +16,7 @@ const workspacePrefix = 'zpr-';
 
 console.log("main.js started");
 
-function validateInputs() {
-    if (!github_token) {
-        throw new Error(`Missing required input 'token'.`)
-    }
-    // Check required inputs
-    if (!tfc_api_token) {
-        throw new Error(`Missing required input 'terraform_cloud_api_token'.`)
-    }
-    // Check required inputs
-    if (!tfc_org) {
-        throw new Error(`Missing required input 'tfc_org'.`)
-    }
-
-    // Check required context properties exist (satisfy type checking)
-    if (!github.context.payload.repository) {
-        throw new Error('github.context.payload.repository is missing.')
-    }
-}
-
-function buildGithubHelper() {
-    let octokit = github.getOctokit(github_token);
-    const issue_number: number = getIssueNumber(github);
-    const repo: string = github.context.payload.repository.name
-    const repo_owner: string = String(github.context.payload.repository.owner.login)
-
-    console.log(`PR Looking at PR: ${repo_owner}/${repo}#${issue_number}`)
-    return new GithubHelper(octokit, repo_owner, repo, issue_number)
-}
-
-async function reportHandlerError(eventName, details) {
+async function reportHandlerError(githubHelper, commentId, eventName, details) {
     let errorMessage = `I ran into an error processing the ${eventName} event.\n\n`
     errorMessage += "```" + details + "```"
 
@@ -58,11 +29,33 @@ async function run(): Promise<void> {
         console.log(`Received eventName=${github.context.eventName} and action=${github.context.payload.action}`);
 
         // Do validation first, but do not comment on PR
-        validateInputs()
+        if (!github_token) {
+            throw new Error(`Missing required input 'token'.`)
+        }
+        // Check required inputs
+        if (!tfc_api_token) {
+            throw new Error(`Missing required input 'terraform_cloud_api_token'.`)
+        }
+        // Check required inputs
+        if (!tfc_org) {
+            throw new Error(`Missing required input 'tfc_org'.`)
+        }
 
-        const githubHelper = buildGithubHelper()
+        // Check required context properties exist (satisfy type checking)
+        if (!github.context.payload.repository) {
+            throw new Error('github.context.payload.repository is missing.')
+        }
+
+        let octokit = github.getOctokit(github_token);
+        const repo: string = github_context.payload.repository.name
+        const repo_owner: string = String(github_context.payload.repository.owner.login)
+        const issue_number: number = getIssueNumber(github);
+
+        console.log(`PR Looking at PR: ${repo_owner}/${repo}#${issue_number}`)
+        const githubHelper = new GithubHelper(octokit, repo_owner, repo, issue_number)
         const prInfo = await githubHelper.getPullRequest();
         const workspaceName = `${workspacePrefix}${prInfo.branch}`;
+        console.log(`PR Looking at PR: ${repo_owner}/${repo}#${issue_number}`)
 
         // parse command and variables from comment body
         const firstLine = github.context.comment.body.split(/\r?\n/)[0].trim()
@@ -73,9 +66,6 @@ async function run(): Promise<void> {
         let tfBackend;
         if (cmdVars.backend === "s3") {
             tfBackend = new S3Backend(workspaceName)
-
-            )
-
         } else {
             tfBackend = new CloudBackend(
                 tfc_org as string,
@@ -117,7 +107,7 @@ async function run(): Promise<void> {
                         githubHelper
                     );
                 } catch (e: any) {
-                    await reportHandlerError("pr closed", e.message)
+                    await reportHandlerError(githubHelper, "pr closed", e.message)
                 }
             }
         }
