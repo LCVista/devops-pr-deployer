@@ -93,7 +93,7 @@ async function run(): Promise<void> {
 
         // handle pr closed event
         } else if (github.context.eventName === 'pull_request') {
-            if (github.context.payload.action == 'closed') {
+            if (github.context.payload.action === 'closed') {
                 console.log("PR closed");
 
                 try {
