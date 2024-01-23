@@ -50,7 +50,7 @@ async function run(): Promise<void> {
         const issue_number: number = getIssueNumber(github);
         const repo: string = github.context.payload.repository.name
         const repo_owner: string = String(github.context.payload.repository.owner.login)
-        const githubHelper = new GithubHelper(octokit, repo_owner, repo, issue_number)
+        let githubHelper = new GithubHelper(octokit, repo_owner, repo, issue_number)
         console.log(`PR Looking at PR: ${repo_owner}/${repo}#${issue_number}`)
 
         let prInfo = await githubHelper.getPullRequest();
