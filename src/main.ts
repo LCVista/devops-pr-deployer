@@ -47,20 +47,17 @@ async function run(): Promise<void> {
         }
 
         let octokit = github.getOctokit(github_token);
+        const issue_number: number = getIssueNumber(github);
         const repo: string = github_context.payload.repository.name
         const repo_owner: string = String(github_context.payload.repository.owner.login)
-        const issue_number: number = getIssueNumber(github);
-
-        console.log(`PR Looking at PR: ${repo_owner}/${repo}#${issue_number}`)
         const githubHelper = new GithubHelper(octokit, repo_owner, repo, issue_number)
-        const prInfo = await githubHelper.getPullRequest();
-        const workspaceName = `${workspacePrefix}${prInfo.branch}`;
         console.log(`PR Looking at PR: ${repo_owner}/${repo}#${issue_number}`)
 
-        // parse command and variables from comment body
-        const firstLine = github.context.comment.body.split(/\r?\n/)[0].trim()
-        const command = extractCmd(firstLine)
-        const cmdVars = extractVars(firstLine)
+        let prInfo = await githubHelper.getPullRequest();
+        let workspaceName = `${workspacePrefix}${prInfo.branch}`;
+        let tfcApi = new TerraformCloudApi(tfc_api_token, tfc_org, workspaceName);
+        let tfcCli = new TerraformCli(tfc_org, workspaceName);
+        console.log(`Workspace name=${workspaceName}, branch=${prInfo.branch}, sha1=${prInfo.sha1}`);
 
         // terraform setup
         let tfBackend;
