@@ -8,26 +8,33 @@ export function extractCmd(line: string): string {
         return "";
     }
 
-    const firstToken = line.split(' ')[0]
-    return firstToken.slice(1) // remove leading slash
+    const cmdToken = tokenize(line)[0]
+
+    return cmdToken.slice(1) // remove leading slash
 }
 
 export function extractVars(line: string): CommandVars {
-    if (!line || line.length == 0){
-        return {};
-    }
+    const reducer = (memo, element) => {
+        const sides = element.split('=')
 
-    return line
-        .split(/\s+/g)
-        .reduce( (accum, entry) => {
-            let sides = entry.split('=');
-            if (sides.length == 2) {
-                accum[sides[0]] = sides[1].trim();
-            } else if (sides.length == 1 && sides[0].length > 0){
-                accum['db_name'] = sides[0];
-            } else {
-                //console.debug(`Bad split for ${entry}, ${sides}`);
-            }
-            return accum;
-        }, {})
+        if (sides.length === 1 && sides[0] === "s3") {
+            memo["backend"] = sides[0]
+        } else if (sides.length === 1) {
+            memo["db_name"] = sides[0]
+        } else if (sides.length === 2) {
+            memo["env_vars"][sides[0]] = sides[1]
+        } else {
+            console.log(`warning: could not process ${element}`)
+        }
+
+        return memo
+    }
+    const tokens = tokenize(line).slice(1) // remove leading command token
+
+    return tokens.reduce(reducer, {})
+}
+
+function tokenize(value: string): Array<string> {
+    const fmt = value.replace(/\s+=\s+/g, "=") // trim whitespace around equal signs
+    return fmt.split(/\s+/g);
 }

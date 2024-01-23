@@ -7,6 +7,7 @@ import {TerraformCli} from "./tfc_cli";
 import {getIssueNumber, GithubHelper} from "./gh_helper";
 import { extractCmd, extractVars } from './comment_parser';
 import { CloudBackend } from './tfc_backend';
+import { S3Backend } from './s3_backend';
 
 const github_token = core.getInput('gh_comment_token') || process.env['gh_comment_token'];
 const tfc_api_token = core.getInput('terraform_cloud_api_token') || process.env['terraform_cloud_api_token'];
@@ -66,14 +67,23 @@ async function run(): Promise<void> {
         // parse command and variables from comment body
         const firstLine = github.context.comment.body.split(/\r?\n/)[0].trim()
         const command = extractCmd(firstLine)
-        const cmdVars = extractVars(firstLine.slice(7).trim())
+        const cmdVars = extractVars(firstLine)
 
         // terraform setup
-        const tfBackend = new CloudBackend(
-            tfc_org as string,
-            tfc_api_token as string,
-            workspaceName
-        )
+        let tfBackend;
+        if (cmdVars.backend === "s3") {
+            tfBackend = new S3Backend(workspaceName)
+
+            )
+
+        } else {
+            tfBackend = new CloudBackend(
+                tfc_org as string,
+                tfc_api_token as string,
+                workspaceName
+            )
+        }
+
         const tfcCli = new TerraformCli(tfBackend, cmdVars, prInfo);
 
         // handle slash commands
@@ -103,7 +113,6 @@ async function run(): Promise<void> {
 
                 try {
                     await handlePrClosed(
-                        tfcCli.backend.tfcApi,
                         tfcCli,
                         githubHelper
                     );

@@ -4,9 +4,9 @@ import { TerraformCloudApi } from "./tfc_api";
 const { execSync } = require("child_process");
 
 export type TerraformBackend = {
-    setupVariables: (prInfo: PullRequestInfo, cmdVars: CommandVars) => Promise<boolean>,
-    configure: () => boolean
-    tfcApi: TerraformCloudApi // deprecated
+    configure: () => boolean,
+    cleanUp: () => Promise<boolean>,
+    setupVariables: (prInfo: PullRequestInfo, cmdVars: CommandVars) => Promise<boolean>
 }
 
 export class TerraformCli {

@@ -3,7 +3,6 @@ import {TerraformCli} from "./tfc_cli";
 import {GithubHelper} from "./gh_helper";
 
 export async function handlePrClosed(
-    tfcApi: TerraformCloudApi,
     tfcCli: TerraformCli,
     ghHelper: GithubHelper
 ){
@@ -16,11 +15,6 @@ export async function handlePrClosed(
         console.log('Workspace may not have been initialized', e);
     }
 
-    let result = await tfcApi.deleteWorkspace();
-    if (result) {
-        console.log (`Workspace ${tfcApi.workspaceName} was deleted`)
-        await ghHelper.addComment(`Workspace ${tfcApi.workspaceName} was deleted`);
-    } else {
-        throw new Error(`Workspace ${tfcApi.workspaceName} NOT deleted`);
-    }
+    await tfcCli.backend.cleanUp();
+    await ghHelper.addComment(`Workspace ${tfcApi.workspaceName} was deleted`);
 }

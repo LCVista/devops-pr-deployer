@@ -28,7 +28,7 @@ async function destroy(
 ) {
     console.log("Received /destroy command");
     await githubHelper.addReaction(commentId, "eyes");
-    await handlePrClosed(tfcCli.backend.tfcApi, tfcCli, githubHelper);
+    await handlePrClosed(tfcCli, githubHelper);
     await githubHelper.addReaction(commentId, "rocket");
 }
 

@@ -71,7 +71,8 @@ export class CloudBackend implements TerraformBackend {
     }
     
     public configure(): boolean {
-        const backendConfig = `terraform {
+        const backendConfig = (
+`terraform {
     cloud {
         hostname     = "${this.tfcApi.baseDomain}"
         organization = "${this.tfcApi.orgId}"
@@ -79,9 +80,20 @@ export class CloudBackend implements TerraformBackend {
             name = "${this.workspaceName}"
         }
     }
-}`;
+}`
+        );
 
         fs.writeFileSync('backend.tf', backendConfig, 'utf-8');
+
+        return true
+    }
+
+    public async cleanUp(): Promise<boolean> {
+        let result = await this.tfcApi.deleteWorkspace();
+
+        if (!result) {
+            throw new Error(`Workspace ${this.workspaceName} NOT deleted`);
+        }
 
         return true
     }
