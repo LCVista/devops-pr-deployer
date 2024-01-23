@@ -16,7 +16,6 @@ export class CloudBackend implements TerraformBackend {
         this.workspaceName = workspaceName;
         this.tfcApi = new TerraformCloudApi(authToken, orgId, workspaceName);
     }
-    
 
     public configure(): boolean {
         const backendConfig = (
