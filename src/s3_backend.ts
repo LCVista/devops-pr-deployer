@@ -42,6 +42,7 @@ export class S3Backend implements TerraformBackend {
     backend "s3" {
         bucket = "lcv-tfstate"
         key = "${this.tfstateKey()}"
+        dynamodb_table = "lcv-tf-locks"
         region = "us-west-2"
     }
 }`
