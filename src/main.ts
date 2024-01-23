@@ -5,6 +5,8 @@ import {handlePrClosed} from "./pr_closed";
 import {TerraformCloudApi} from "./tfc_api";
 import {TerraformCli} from "./tfc_cli";
 import {getIssueNumber, GithubHelper} from "./gh_helper";
+import { extractCmd, extractVars } from './comment_parser';
+import { CloudBackend } from './tfc_backend';
 
 const github_token = core.getInput('gh_comment_token') || process.env['gh_comment_token'];
 const tfc_api_token = core.getInput('terraform_cloud_api_token') || process.env['terraform_cloud_api_token'];
@@ -13,80 +15,100 @@ const workspacePrefix = 'zpr-';
 
 console.log("main.js started");
 
+function validateInputs() {
+    if (!github_token) {
+        throw new Error(`Missing required input 'token'.`)
+    }
+    // Check required inputs
+    if (!tfc_api_token) {
+        throw new Error(`Missing required input 'terraform_cloud_api_token'.`)
+    }
+    // Check required inputs
+    if (!tfc_org) {
+        throw new Error(`Missing required input 'tfc_org'.`)
+    }
+
+    // Check required context properties exist (satisfy type checking)
+    if (!github.context.payload.repository) {
+        throw new Error('github.context.payload.repository is missing.')
+    }
+}
+
+function buildGithubHelper() {
+    let octokit = github.getOctokit(github_token);
+    const issue_number: number = getIssueNumber(github);
+    const repo: string = github.context.payload.repository.name
+    const repo_owner: string = String(github.context.payload.repository.owner.login)
+
+    console.log(`PR Looking at PR: ${repo_owner}/${repo}#${issue_number}`)
+    return new GithubHelper(octokit, repo_owner, repo, issue_number)
+}
+
+async function reportHandlerError(eventName, details) {
+    let errorMessage = `I ran into an error processing the ${eventName} event.\n\n`
+    errorMessage += "```" + details + "```"
+
+    await githubHelper.addReaction(commentId, "-1");
+    await githubHelper.addComment(errorMessage);
+}
+
 async function run(): Promise<void> {
-    // Do validation first, but do not comment on PR
     try {
         console.log(`Received eventName=${github.context.eventName} and action=${github.context.payload.action}`);
 
-        // Check required inputs
-        if (!github_token) {
-            throw new Error(`Missing required input 'token'.`)
-        }
-        // Check required inputs
-        if (!tfc_api_token) {
-            throw new Error(`Missing required input 'terraform_cloud_api_token'.`)
-        }
-        // Check required inputs
-        if (!tfc_org) {
-            throw new Error(`Missing required input 'tfc_org'.`)
-        }
+        // Do validation first, but do not comment on PR
+        validateInputs()
 
-        // Check required context properties exist (satisfy type checking)
-        if (!github.context.payload.repository) {
-            throw new Error('github.context.payload.repository is missing.')
-        }
+        const githubHelper = buildGithubHelper()
+        const prInfo = await githubHelper.getPullRequest();
+        const workspaceName = `${workspacePrefix}${prInfo.branch}`;
 
-        let octokit = github.getOctokit(github_token);
-        const issue_number: number = getIssueNumber(github);
-        const repo: string = github.context.payload.repository.name
-        const repo_owner: string = String(github.context.payload.repository.owner.login)
-        let githubHelper = new GithubHelper(octokit, repo_owner, repo, issue_number)
-        console.log(`PR Looking at PR: ${repo_owner}/${repo}#${issue_number}`)
+        // parse command and variables from comment body
+        const firstLine = github.context.comment.body.split(/\r?\n/)[0].trim()
+        const command = extractCmd(firstLine)
+        const cmdVars = extractVars(firstLine.slice(7).trim())
 
-        let prInfo = await githubHelper.getPullRequest();
-        let workspaceName = `${workspacePrefix}${prInfo.branch}`;
-        let tfcApi = new TerraformCloudApi(tfc_api_token, tfc_org, workspaceName);
-        let tfcCli = new TerraformCli(tfc_org, workspaceName);
-        console.log(`Workspace name=${workspaceName}, branch=${prInfo.branch}, sha1=${prInfo.sha1}`);
+        // terraform setup
+        const tfBackend = new CloudBackend(
+            tfc_org as string,
+            tfc_api_token as string,
+            workspaceName
+        )
+        const tfcCli = new TerraformCli(tfBackend, cmdVars, prInfo);
 
+        // handle slash commands
         if (github.context.eventName === 'issue_comment') {
             if (!github.context.payload.comment) {
                 throw new Error('github.context.payload.comment is missing.')
             }
-            const commentBody: string = github.context.payload.comment.body
-            const commentId: number = github.context.payload.comment.id
-            console.log(`Comment body: ${commentBody}`)
-            console.log(`Comment id: ${commentId}`)
 
-            console.log("Slash Command");
+            console.log("Recieved Slash Command");
             try {
                 await handleSlashCommand(
-                    tfcApi,
                     tfcCli,
                     githubHelper,
+                    github.context.payload.comment.id,
+                    command,
+                    cmdVars,
                     prInfo,
-                    commentId,
-                    commentBody
                 );
             } catch (e: any) {
-                let errorMessage = `I ran into an error processing the slash command.  Here's more information:\n\n` +
-                    `\`\`\`${e.message}\`\`\``;
-
-                await githubHelper.addReaction(commentId, "-1");
-                await githubHelper.addComment(errorMessage);
+                await reportHandlerError("slash command", e.message)
             }
+
+        // handle pr closed event
         } else if (github.context.eventName === 'pull_request') {
-            if (github.context.payload.action === 'closed') {
+            if (github.context.payload.action == 'closed') {
                 console.log("PR closed");
+
                 try {
                     await handlePrClosed(
-                        tfcApi,
+                        tfcCli.backend.tfcApi,
                         tfcCli,
                         githubHelper
                     );
                 } catch (e: any) {
-                    let errorMessage = `I ran into an error handling the closed PR. Here's more information:\n${e.message}`;
-                    await githubHelper.addComment(errorMessage);
+                    await reportHandlerError("pr closed", e.message)
                 }
             }
         }

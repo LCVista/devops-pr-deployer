@@ -1,4 +1,4 @@
-import {extractVars} from "../src/slash_command";
+import {extractVars} from "../src/comment_parser";
 
 test('extractVars should handle no vars gracefully', () => {
     // Arrange

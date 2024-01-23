@@ -1,22 +1,30 @@
-import fs from "fs";
+import { CommandVars } from "./comment_parser";
+import { PullRequestInfo } from "./gh_helper";
+import { TerraformCloudApi } from "./tfc_api";
 const { execSync } = require("child_process");
 
+export type TerraformBackend = {
+    setupVariables: (prInfo: PullRequestInfo, cmdVars: CommandVars) => Promise<boolean>,
+    configure: () => boolean
+    tfcApi: TerraformCloudApi // deprecated
+}
+
 export class TerraformCli {
-    public readonly orgId: string;
-    public readonly workspaceName: string;
-    public readonly baseDomain: string;
+    public readonly backend: TerraformBackend;
     private readonly exec: (string) => Buffer;
+    private readonly cmdVars: CommandVars;
+    private readonly prInfo: PullRequestInfo;
 
     constructor(
-        orgId: string,
-        workspaceName: string,
-        baseDomain: string | undefined = undefined,
-        exec: ((string) => Buffer) | undefined = undefined
+        backend: TerraformBackend,
+        cmdVars: CommandVars,
+        prInfo: PullRequestInfo,
+        exec: ((string) => Buffer) | undefined = undefined,
     ) {
-        this.baseDomain = baseDomain ? baseDomain : "app.terraform.io";
-        this.orgId = orgId;
-        this.workspaceName = workspaceName;
+        this.backend = backend;
         this.exec = exec ? exec : execSync;
+        this.cmdVars = cmdVars;
+        this.prInfo = prInfo;
     }
 
     private __exec(command) : string {
@@ -46,27 +54,21 @@ export class TerraformCli {
     }
 
     public tfInit(): string {
-        // Because the workspace name is calculated per PR,
-        // this terraform cloud setting needs to be set before CLI commands can be called.
-        const TERRAFORM_HEADER = `terraform {
-  cloud {
-    hostname     = "${this.baseDomain}"
-    organization = "${this.orgId}"
-    workspaces {
-      name = "${this.workspaceName}"
-    }
-  }
-}`;
-        fs.writeFileSync('terraform.tf', TERRAFORM_HEADER, 'utf-8');
+        // apply terraform backend configuration
+        this.backend.configure()
 
         return this.__exec('terraform init -no-color -input=false');
     }
 
     public tfShow(): string {
+        this.backend.setupVariables(this.prInfo, this.cmdVars)
+
         return this.__exec('terraform show -no-color');
     }
 
     public tfApply(): string {
+        this.backend.setupVariables(this.prInfo, this.cmdVars)
+
         return this.__exec('terraform apply -no-color --auto-approve');
     }
 
