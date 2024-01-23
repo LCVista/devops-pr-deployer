@@ -1,4 +1,3 @@
-
 import fs from "fs";
 import { TerraformCloudApi } from "./tfc_api";
 import { PullRequestInfo } from "./gh_helper";
@@ -18,6 +17,25 @@ export class CloudBackend implements TerraformBackend {
         this.tfcApi = new TerraformCloudApi(authToken, orgId, workspaceName);
     }
     
+
+    public configure(): boolean {
+        const backendConfig = (
+`terraform {
+    cloud {
+        hostname     = "${this.tfcApi.baseDomain}"
+        organization = "${this.tfcApi.orgId}"
+        workspaces {
+            name = "${this.workspaceName}"
+        }
+    }
+}`
+        );
+
+        fs.writeFileSync('backend.tf', backendConfig, 'utf-8');
+
+        return true
+    }
+
     public async setupVariables(
         prInfo: PullRequestInfo, 
         cmdVars: CommandVars
@@ -70,24 +88,6 @@ export class CloudBackend implements TerraformBackend {
         return true
     }
     
-    public configure(): boolean {
-        const backendConfig = (
-`terraform {
-    cloud {
-        hostname     = "${this.tfcApi.baseDomain}"
-        organization = "${this.tfcApi.orgId}"
-        workspaces {
-            name = "${this.workspaceName}"
-        }
-    }
-}`
-        );
-
-        fs.writeFileSync('backend.tf', backendConfig, 'utf-8');
-
-        return true
-    }
-
     public async cleanUp(): Promise<boolean> {
         let result = await this.tfcApi.deleteWorkspace();
 
