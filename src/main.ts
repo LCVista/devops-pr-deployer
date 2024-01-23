@@ -48,16 +48,13 @@ async function run(): Promise<void> {
 
         let octokit = github.getOctokit(github_token);
         const issue_number: number = getIssueNumber(github);
-        const repo: string = github_context.payload.repository.name
-        const repo_owner: string = String(github_context.payload.repository.owner.login)
+        const repo: string = github.context.payload.repository.name
+        const repo_owner: string = String(github.context.payload.repository.owner.login)
         const githubHelper = new GithubHelper(octokit, repo_owner, repo, issue_number)
         console.log(`PR Looking at PR: ${repo_owner}/${repo}#${issue_number}`)
 
         let prInfo = await githubHelper.getPullRequest();
         let workspaceName = `${workspacePrefix}${prInfo.branch}`;
-        let tfcApi = new TerraformCloudApi(tfc_api_token, tfc_org, workspaceName);
-        let tfcCli = new TerraformCli(tfc_org, workspaceName);
-        console.log(`Workspace name=${workspaceName}, branch=${prInfo.branch}, sha1=${prInfo.sha1}`);
 
         // terraform setup
         let tfBackend;
