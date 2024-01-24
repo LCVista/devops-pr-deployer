@@ -37,16 +37,16 @@ export class S3Backend implements TerraformBackend {
             "Key": this.tfvarsKey()
         }));
 
-        return true
+        return true;
     }
 
     public configBlock(): string {
         return (
 `terraform {
     backend "s3" {
-        bucket = "lcv-tfstate"
+        bucket = "${this.bucketName}"
         key = "${this.tfstateKey()}"
-        dynamodb_table = "lcv-tf-locks"
+        dynamodb_table = "${this.dynamodbTable}"
         region = "us-west-2"
     }
 }`
@@ -57,7 +57,7 @@ export class S3Backend implements TerraformBackend {
         prInfo: PullRequestInfo, 
         cmdVars: CommandVars
     ): Promise<boolean> {
-        const savedVars = await this.getVariableState()
+        const savedVars = await this.getVariableState();
         let variables = {...savedVars, ...cmdVars};
 
         variables.git_branch = prInfo.branch;
@@ -69,7 +69,7 @@ export class S3Backend implements TerraformBackend {
             'utf-8'
         );
 
-        return await this.saveVariableState(variables)
+        return await this.saveVariableState(variables);
     }
 
     private tfvarsKey() {
@@ -100,5 +100,4 @@ export class S3Backend implements TerraformBackend {
 
         return JSON.parse(response.Body);
     }
-
 }
