@@ -8,8 +8,6 @@ export async function handleSlashCommand(
     tfcCli: TerraformCli,
     githubHelper: GithubHelper,
     commentId: number,
-    command: string,
-    commandVars: CommandVars,
     commentBody: string,
     prInfo: PullRequestInfo
 ) {
