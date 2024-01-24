@@ -10,13 +10,20 @@ export async function handleSlashCommand(
     commentId: number,
     command: string,
     commandVars: CommandVars,
+    commentBody: string,
     prInfo: PullRequestInfo
 ) {
-    console.log(`Comment id: ${commentId}`)
-    console.log(`command: ${command}`)
-    console.log(`command variables: ${commandVars}`);
+    const firstLine = commentBody.split(/\r?\n/)[0].trim()
+    if (!firstLine || firstLine.length < 2 || !firstLine.startsWith('/')){
+        console.debug(
+            'The first line of the comment is not a valid slash command.'
+        )
+        return;
+    }
 
-    if (command === 'help') {
+    console.log(`Comment id: ${commentId}`)
+
+    if (firstLine.startsWith('/help')) {
         console.log("Received /help command");
 
         await githubHelper.addReaction(commentId, "eyes");
@@ -27,17 +34,21 @@ export async function handleSlashCommand(
         await githubHelper.addComment(HELP_TEXT + "\n\n" + "```" + availableVariables + "```");
         await githubHelper.addReaction(commentId, "rocket");
         return;
-    } else if (command === 'destroy') {
+    } else if (firstLine.startsWith('/destroy')) {
         console.log("Received /destroy command");
         await githubHelper.addReaction(commentId, "eyes");
         await handlePrClosed(tfcCli, githubHelper);
         await githubHelper.addReaction(commentId, "rocket");
         return;
-    } else if (command === 'deploy') {
+    } else if (firstLine.startsWith('/deploy')) {
         console.log("Received /deploy command");
         await githubHelper.addReaction(commentId, "eyes");
 
         tfcCli.tfInit();
+
+        let variables = extractVars(firstLine.slice(7).trim());
+
+        tfcCli.backend.setupVariables(prInfo, variables)
 
         tfcCli.tfApply();
 

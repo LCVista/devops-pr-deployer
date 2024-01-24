@@ -11,19 +11,13 @@ export type TerraformBackend = {
 export class TerraformCli {
     public readonly backend: TerraformBackend;
     private readonly exec: (string) => Buffer;
-    private readonly cmdVars: CommandVars;
-    private readonly prInfo: PullRequestInfo;
 
     constructor(
         backend: TerraformBackend,
-        cmdVars: CommandVars,
-        prInfo: PullRequestInfo,
         exec: ((string) => Buffer) | undefined = undefined,
     ) {
         this.backend = backend;
         this.exec = exec ? exec : execSync;
-        this.cmdVars = cmdVars;
-        this.prInfo = prInfo;
     }
 
     private __exec(command) : string {
@@ -53,21 +47,16 @@ export class TerraformCli {
     }
 
     public tfInit(): string {
-        // apply terraform backend configuration
         this.backend.configure()
 
         return this.__exec('terraform init -no-color -input=false');
     }
 
     public tfShow(): string {
-        this.backend.setupVariables(this.prInfo, this.cmdVars)
-
         return this.__exec('terraform show -no-color');
     }
 
     public tfApply(): string {
-        this.backend.setupVariables(this.prInfo, this.cmdVars)
-
         return this.__exec('terraform apply -no-color --auto-approve');
     }
 
