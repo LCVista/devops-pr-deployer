@@ -74,19 +74,6 @@ export class S3Backend implements TerraformBackend {
         return await this.saveVariableState(variables)
     }
 
-    public async hasExistingWorkspace(): Promise<boolean> {
-        try {
-            const variables = this.getVariableState()
-            return !!variables
-        } catch (e) {
-            if (e instanceof NoSuchKey) {
-                return false;
-            } else {
-                throw e;
-            }
-        }
-    }
-
     private tfvarsKey() {
         return `${this.workspaceName}/terraform.tfvars.json`
     }

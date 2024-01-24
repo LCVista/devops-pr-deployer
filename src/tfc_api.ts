@@ -6,8 +6,6 @@ type ExistingVar = {
     value: string
 }
 
-class MissingWorkspaceError extends Error {}
-
 export class TerraformCloudApi {
     private readonly tfcApiToken: string;
     public readonly orgId: string;
@@ -102,19 +100,6 @@ export class TerraformCloudApi {
             );
         } else {
             throw new Error("Workspace does not exist")
-        }
-    }
-
-    public async hasExistingWorkspace(): Promise<boolean> {
-        try {
-            const id = await this.getWorkspaceId()
-            return !!id
-        } catch (e) {
-            if (e instanceof MissingWorkspaceError) {
-                return false;
-            } else {
-                throw e;
-            }
         }
     }
 

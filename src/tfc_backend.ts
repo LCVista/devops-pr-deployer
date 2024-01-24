@@ -92,9 +92,5 @@ export class CloudBackend implements TerraformBackend {
 
         return true
     }
-    
-    public async hasExistingWorkspace() {
-        return this.tfcApi.hasExistingWorkspace();
-    }
 }
     
