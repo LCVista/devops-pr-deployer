@@ -85,7 +85,11 @@ async function run(): Promise<void> {
                 workspaceName
             )
         } else {
-            terraformBackend = new S3Backend(workspaceName)
+            terraformBackend = new S3Backend(
+                s3_bucket,
+                s3_dynamodb_table, 
+                workspaceName
+            );
         }
         const tfcCli = new TerraformCli(tfBackend);
 

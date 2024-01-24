@@ -17,9 +17,9 @@ export class S3Backend implements TerraformBackend {
     private readonly s3Client: S3Client;
 
     constructor(
-        workspaceName: string,
         bucketName: string,
-        dynamodbTable: string
+        dynamodbTable: string,
+        workspaceName: string
     ) {
         this.bucketName = bucketName;
         this.dynamodbTable = dynamodbTable;
@@ -41,8 +41,8 @@ export class S3Backend implements TerraformBackend {
         return true
     }
 
-    public configure(): boolean {
-        const backendConfig = (
+    public configBlock(): string {
+        return (
 `terraform {
     backend "s3" {
         bucket = "lcv-tfstate"
@@ -52,10 +52,6 @@ export class S3Backend implements TerraformBackend {
     }
 }`
         );
-
-        fs.writeFileSync('backend.tf', backendConfig, 'utf-8');
-
-        return true
     }
 
 

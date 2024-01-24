@@ -1,9 +1,10 @@
+import fs from "fs";
 import { PullRequestInfo } from "./gh_helper";
 import { CommandVars } from "./slash_command";
 const { execSync } = require("child_process");
 
 export type TerraformBackend = {
-    configure: () => boolean,
+    configBlock: () => string,
     cleanUp: () => Promise<boolean>,
     setupVariables: (prInfo: PullRequestInfo, cmdVars: CommandVars) => Promise<boolean>
     hasExistingWorkspace: () => Promise<boolean>
@@ -48,7 +49,9 @@ export class TerraformCli {
     }
 
     public tfInit(): string {
-        this.backend.configure()
+        const TERRAFORM_HEADER = this.backend.configBlock()
+
+        fs.writeFileSync('terraform.tf', TERRAFORM_HEADER, 'utf-8');
 
         return this.__exec('terraform init -no-color -input=false');
     }

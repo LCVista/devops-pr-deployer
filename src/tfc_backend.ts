@@ -17,8 +17,8 @@ export class CloudBackend implements TerraformBackend {
         this.tfcApi = new TerraformCloudApi(authToken, orgId, workspaceName);
     }
 
-    public configure(): boolean {
-        const backendConfig = (
+    public configBlock(): string {
+        return (
 `terraform {
     cloud {
         hostname     = "${this.tfcApi.baseDomain}"
@@ -29,10 +29,6 @@ export class CloudBackend implements TerraformBackend {
     }
 }`
         );
-
-        fs.writeFileSync('backend.tf', backendConfig, 'utf-8');
-
-        return true
     }
 
     public async setupVariables(
