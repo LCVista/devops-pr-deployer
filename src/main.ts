@@ -75,7 +75,6 @@ async function run(): Promise<void> {
             if (!github.context.payload.comment) {
                 throw new Error('github.context.payload.comment is missing.')
             }
-
             const commentBody: string = github.context.payload.comment.body
             const commentId: number = github.context.payload.comment.id
             console.log(`Comment body: ${commentBody}`)
@@ -96,7 +95,6 @@ async function run(): Promise<void> {
         } else if (github.context.eventName === 'pull_request') {
             if (github.context.payload.action === 'closed') {
                 console.log("PR closed");
-
                 try {
                     await handlePrClosed(
                         tfcCli,
