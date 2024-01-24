@@ -11,8 +11,8 @@ inputs:
     description: 'The organization name where private terraform modules are located'
     required: true
   terraform_backend:
-    description: 'choose a terraform backend. Choices are "tfc" or "s3"'
-    required: true
+    description: 'choose a terraform backend. Choices are "tfc" (default) or "s3"'
+    default: tfc
   terraform_cloud_api_token:
     description: 'A token for Terraform cloud. required for TFC backend'
   terraform_org:
@@ -73,8 +73,8 @@ runs:
         gh_comment_token: ${{ inputs.gh_comment_token }}
         terraform_cloud_api_token: ${{ inputs.terraform_cloud_api_token }}
         terraform_org: ${{ inputs.terraform_org }}
-        s3_tfstate_bucket: ${{ inputs.s3_tfstate_bucket }}
-        dynamo_tflocks_table: ${{ inputs.dynamo_tflocks_table }}
+        s3_bucket: ${{ inputs.s3_bucket }}
+        s3_dynamodb_table: ${{ inputs.s3_dynamodb_table }}
 
 branding:
   icon: 'target'
