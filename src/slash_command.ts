@@ -7,9 +7,9 @@ import {handlePrClosed} from "./pr_closed";
 export async function handleSlashCommand(
     tfcCli: TerraformCli,
     githubHelper: GithubHelper,
+    prInfo: PullRequestInfo,
     commentId: number,
-    commentBody: string,
-    prInfo: PullRequestInfo
+    commentBody: string
 ) {
     const firstLine = commentBody.split(/\r?\n/)[0].trim()
     if (!firstLine || firstLine.length < 2 || !firstLine.startsWith('/')){
