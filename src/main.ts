@@ -83,7 +83,7 @@ async function run(): Promise<void> {
                 );
             } catch (e: any) {
                 let errorMessage = `I ran into an error processing the slash command.  Here's more information:\n\n` +
-                `\`\`\`${e.message}\`\`\``;
+                    `\`\`\`${e.message}\`\`\``;
 
                 await githubHelper.addReaction(commentId, "-1");
                 await githubHelper.addComment(errorMessage);
