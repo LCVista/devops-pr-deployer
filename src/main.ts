@@ -74,6 +74,8 @@ async function run(): Promise<void> {
             if (!github.context.payload.comment) {
                 throw new Error('github.context.payload.comment is missing.')
             }
+
+            const commentBody: string = github.context.payload.comment.body
             const commentId: number = github.context.payload.comment.id
 
             console.log("Slash Command");
@@ -82,9 +84,8 @@ async function run(): Promise<void> {
                     tfcCli,
                     githubHelper,
                     commentId,
-                    command,
-                    cmdVars,
-                    prInfo,
+                    commentBody,
+                    prInfo
                 );
             } catch (e: any) {
                 await reportHandlerError("slash command", e.message)
