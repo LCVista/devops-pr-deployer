@@ -24,10 +24,11 @@ async function reportHandlerError(githubHelper, commentId, eventName, details) {
 }
 
 async function run(): Promise<void> {
+    // Do validation first, but do not comment on PR
     try {
         console.log(`Received eventName=${github.context.eventName} and action=${github.context.payload.action}`);
 
-        // Do validation first, but do not comment on PR
+        // Check required inputs
         if (!github_token) {
             throw new Error(`Missing required input 'token'.`)
         }
