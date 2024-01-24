@@ -33,7 +33,7 @@ export class CloudBackend implements TerraformBackend {
 
     public async setupVariables(
         prInfo: PullRequestInfo, 
-        cmdVars: CommandVars
+        variables: CommandVars
     ): Promise<boolean> {
         const { tfcApi } = this
 
@@ -57,9 +57,9 @@ export class CloudBackend implements TerraformBackend {
             }
         }
 
-        console.log(`command variables `, cmdVars);
+        console.log(`recieved variables `, variables);
 
-        for (let key in cmdVars) {
+        for (let key in variables) {
             if (key !== 'env_vars') {
                 env_vars[key] = variables[key];
                 allSet &&= await tfcApi.setVariable(workspaceId, existingVars[key], key, variables[key]);
