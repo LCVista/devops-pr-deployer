@@ -9,6 +9,8 @@ import {
 } from "@aws-sdk/client-s3";
 import { CommandVars } from "./slash_command";
 
+const TFVARS_FILENAME = "terraform.tfvars.json"
+
 export class S3Backend implements TerraformBackend {
     private readonly workspaceName: string;
     private readonly bucketName: string; 
@@ -64,7 +66,7 @@ export class S3Backend implements TerraformBackend {
         variables.sha1 = prInfo.sha1;
 
         fs.writeFileSync(
-            `${this.workspaceName}.tfvars.json`, 
+            TFVARS_FILENAME,
             JSON.stringify(variables), 
             'utf-8'
         );
@@ -73,7 +75,7 @@ export class S3Backend implements TerraformBackend {
     }
 
     private tfvarsKey() {
-        return `${this.workspaceName}/terraform.tfvars.json`;
+        return `${this.workspaceName}/${TFVARS_FILENAME}`;
     }
     
     private tfstateKey() {
