@@ -77,6 +77,8 @@ async function run(): Promise<void> {
 
             const commentBody: string = github.context.payload.comment.body
             const commentId: number = github.context.payload.comment.id
+            console.log(`Comment body: ${commentBody}`)
+            console.log(`Comment id: ${commentId}`)
 
             console.log("Slash Command");
             try {
