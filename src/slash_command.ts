@@ -40,7 +40,6 @@ export async function handleSlashCommand(
         let variables = extractVars(firstLine.slice(7).trim());
 
         tfcCli.backend.setupVariables(prInfo, variables)
-
         tfcCli.tfApply();
 
         let previewUrl = tfcCli.tfOutputOneVariable("preview_url");
