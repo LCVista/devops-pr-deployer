@@ -91,9 +91,8 @@ async function run(): Promise<void> {
                 workspaceName
             );
         }
-        const tfcCli = new TerraformCli(tfBackend);
+        const tfcCli = new TerraformCli(terraformBackend);
 
-        // handle slash commands
         if (github.context.eventName === 'issue_comment') {
             if (!github.context.payload.comment) {
                 throw new Error('github.context.payload.comment is missing.')
