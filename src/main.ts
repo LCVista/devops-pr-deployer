@@ -85,15 +85,13 @@ async function run(): Promise<void> {
                 await handleSlashCommand(
                     tfcCli,
                     githubHelper,
+                    prInfo
                     commentId,
                     commentBody,
-                    prInfo
                 );
             } catch (e: any) {
                 await reportHandlerError("slash command", e.message)
             }
-
-        // handle pr closed event
         } else if (github.context.eventName === 'pull_request') {
             if (github.context.payload.action === 'closed') {
                 console.log("PR closed");
