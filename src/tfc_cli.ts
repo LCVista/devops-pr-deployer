@@ -7,7 +7,6 @@ export type TerraformBackend = {
     configBlock: () => string,
     cleanUp: () => Promise<boolean>,
     setupVariables: (prInfo: PullRequestInfo, cmdVars: CommandVars) => Promise<boolean>
-    hasExistingWorkspace: () => Promise<boolean>
 }
 
 export class TerraformCli {
