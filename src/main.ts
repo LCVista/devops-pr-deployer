@@ -15,14 +15,6 @@ const workspacePrefix = 'zpr-';
 
 console.log("main.js started");
 
-async function reportHandlerError(githubHelper, commentId, eventName, details) {
-    let errorMessage = `I ran into an error processing the ${eventName} event.\n\n`
-    errorMessage += "```" + details + "```"
-
-    await githubHelper.addReaction(commentId, "-1");
-    await githubHelper.addComment(errorMessage);
-}
-
 async function run(): Promise<void> {
     // Do validation first, but do not comment on PR
     try {
