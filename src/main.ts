@@ -5,7 +5,6 @@ import {handlePrClosed} from "./pr_closed";
 import {TerraformCloudApi} from "./tfc_api";
 import {TerraformCli} from "./tfc_cli";
 import {getIssueNumber, GithubHelper} from "./gh_helper";
-import { extractCmd, extractVars } from './comment_parser';
 import { CloudBackend } from './tfc_backend';
 import { S3Backend } from './s3_backend';
 

@@ -1,4 +1,3 @@
-import { CommandVars } from "./comment_parser";
 import { PullRequestInfo } from "./gh_helper";
 import { TerraformCloudApi } from "./tfc_api";
 const { execSync } = require("child_process");

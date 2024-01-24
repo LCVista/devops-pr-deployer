@@ -3,7 +3,6 @@ import {TerraformCli} from "./tfc_cli";
 import {TerraformCloudApi} from "./tfc_api";
 import {GithubHelper, PullRequestInfo} from "./gh_helper";
 import {handlePrClosed} from "./pr_closed";
-import { CommandVars } from "./comment_parser";
 
 
 async function help(
@@ -86,4 +85,24 @@ export async function handleSlashCommand(
         console.debug('Unknown command')
         return;
     }
+}
+
+export function extractVars(line: string): {[key: string]: string} {
+    if (!line || line.length == 0){
+        return {};
+    }
+
+    return line
+        .split(/\s+/g)
+        .reduce( (accum, entry) => {
+            let sides = entry.split('=');
+            if (sides.length == 2) {
+                accum[sides[0]] = sides[1].trim();
+            } else if (sides.length == 1 && sides[0].length > 0){
+                accum['db_name'] = sides[0];
+            } else {
+                //console.debug(`Bad split for ${entry}, ${sides}`);
+            }
+            return accum;
+        }, {})
 }
