@@ -65,7 +65,11 @@ export async function handleSlashCommand(
     }
 }
 
-export function extractVars(line: string): {[key: string]: string} {
+export type CommandVars = {
+    [key: string]: string
+}
+
+export function extractVars(line: string): CommandVars {
     if (!line || line.length == 0){
         return {};
     }
@@ -84,3 +88,4 @@ export function extractVars(line: string): {[key: string]: string} {
             return accum;
         }, {})
 }
+

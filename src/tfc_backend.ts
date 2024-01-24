@@ -2,6 +2,7 @@ import fs from "fs";
 import { TerraformCloudApi } from "./tfc_api";
 import { PullRequestInfo } from "./gh_helper";
 import { TerraformBackend } from "./tfc_cli";
+import { CommandVars } from "./slash_command";
 
 export class CloudBackend implements TerraformBackend {
     public readonly tfcApi: TerraformCloudApi;

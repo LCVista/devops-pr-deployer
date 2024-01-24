@@ -1,13 +1,13 @@
 import fs from "fs";
 import { PullRequestInfo } from "./gh_helper";
 import { TerraformBackend } from "./tfc_cli";
-import { CommandVars } from "./comment_parser";
 import { 
     S3Client, 
     PutObjectCommand, 
     GetObjectCommand,
     DeleteObjectCommand
 } from "@aws-sdk/client-s3";
+import { CommandVars } from "./slash_command";
 
 export class S3Backend implements TerraformBackend {
     private readonly workspaceName: string;
