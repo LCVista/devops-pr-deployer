@@ -86,9 +86,9 @@ async function run(): Promise<void> {
                 await handleSlashCommand(
                     tfcCli,
                     githubHelper,
-                    prInfo
+                    prInfo,
                     commentId,
-                    commentBody,
+                    commentBody
                 );
             } catch (e: any) {
                 await reportHandlerError("slash command", e.message)
