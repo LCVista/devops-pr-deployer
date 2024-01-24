@@ -86,4 +86,3 @@ export function extractVars(line: string): CommandVars {
             return accum;
         }, {})
 }
-
