@@ -18,8 +18,6 @@ const s3_bucket = core.getInput('s3_bucket') || process.env['s3_bucket']
 const s3_dynamodb_table = core.getInput('s3_dynamodb_table') || process.env['s3_dynamodb_table']
 const workspacePrefix = 'zpr-';
 
-
-
 console.log("main.js started");
 
 async function run(): Promise<void> {
