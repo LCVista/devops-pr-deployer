@@ -21,9 +21,9 @@ inputs:
     description: 'AWS access key id for accessing tfstate s3/dynamodb. required for S3 backend.'
   aws_secret_key:
     description: 'AWS secret key for accessing tfstate s3/dynamodb. required for S3 backend'
-  s3_tfstate_bucket:
+  s3_bucket:
     description: 's3 bucket for storing tfstate. required for S3 backend'
-  dynamo_tflocks_table:
+  s3_dynamodb_table:
     description: 'dynamodb table for tracking workspace locks. required for s3 backend'
 outputs:
   error-message:
