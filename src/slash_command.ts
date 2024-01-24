@@ -3,7 +3,6 @@ import {TerraformCli} from "./tfc_cli";
 import {GithubHelper, PullRequestInfo} from "./gh_helper";
 import {handlePrClosed} from "./pr_closed";
 
-
 export async function handleSlashCommand(
     tfcCli: TerraformCli,
     githubHelper: GithubHelper,
@@ -18,17 +17,11 @@ export async function handleSlashCommand(
         )
         return;
     }
-
-    console.log(`Comment id: ${commentId}`)
-
     if (firstLine.startsWith('/help')) {
         console.log("Received /help command");
-
         await githubHelper.addReaction(commentId, "eyes");
-
         tfcCli.tfInit();
         let availableVariables = tfcCli.tfShow();
-
         await githubHelper.addComment(HELP_TEXT + "\n\n" + "```" + availableVariables + "```");
         await githubHelper.addReaction(commentId, "rocket");
         return;
@@ -59,6 +52,7 @@ export async function handleSlashCommand(
         const comment = `Environment is ready at [${previewUrl}](${previewUrl})\n\n` + "```" + output + "```"
         await githubHelper.addComment(comment)
         await githubHelper.addReaction(commentId, "rocket");
+        return;
     } else {
         console.debug('Unknown command')
         return;
