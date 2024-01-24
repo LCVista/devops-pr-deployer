@@ -33,11 +33,13 @@ export class S3Backend implements TerraformBackend {
             "Bucket": this.bucketName,
             "Key": this.tfstateKey()
         }));
+        console.log(`S3: deleted ${this.tfstateKey()}`)
 
         await this.s3Client.send(new DeleteObjectCommand({
             "Bucket": this.bucketName,
             "Key": this.tfvarsKey()
         }));
+        console.log(`S3: deleted ${this.tfvarsKey()}`)
 
         return true;
     }
@@ -64,12 +66,16 @@ export class S3Backend implements TerraformBackend {
 
         variables.git_branch = prInfo.branch;
         variables.sha1 = prInfo.sha1;
+        
+        console.log(`recieved variables ${variables}`);
 
         fs.writeFileSync(
             TFVARS_FILENAME,
             JSON.stringify(variables), 
             'utf-8'
         );
+
+        console.log(`wrote to ${TFVARS_FILENAME}`)
 
         return await this.saveVariableState(variables);
     }
@@ -83,23 +89,31 @@ export class S3Backend implements TerraformBackend {
     }
 
     private async saveVariableState(variables: CommandVars): Promise<boolean> {
+        console.log('saving variable state')
+        console.log(variables)
         const command = new PutObjectCommand({
             "Bucket": this.bucketName,
             "Key": this.tfvarsKey(),
             "Body":  JSON.stringify(variables)
         });
         const response = this.s3Client.send(command);
+        console.log("saved")
 
         return true;
     }
 
     private async getVariableState(): Promise<CommandVars> {
+        console.log('getting variable state')
         const command = new GetObjectCommand({
             "Bucket": this.bucketName,
             "Key": this.tfvarsKey(),
         })
         const response = await this.s3Client.send(command);
+        const variables = JSON.parse(response.body)
 
-        return JSON.parse(response.Body);
+        console.log('recieved variable state')
+        console.log(variables)
+
+        return variables
     }
 }
