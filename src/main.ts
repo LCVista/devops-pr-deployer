@@ -11,7 +11,14 @@ import { S3Backend } from './s3_backend';
 const github_token = core.getInput('gh_comment_token') || process.env['gh_comment_token'];
 const tfc_api_token = core.getInput('terraform_cloud_api_token') || process.env['terraform_cloud_api_token'];
 const tfc_org = core.getInput('terraform_org') || process.env['terraform_org'];
+const terraform_backend = core.getInput('terraform_backend') || process.env['terraform_backend'];
+const aws_access_id = core.getInput('aws_access_id') || process.env['aws_access_id'];
+const aws_secret_key = core.getInput('aws_secret_key') || process.env['aws_secret_key'];
+const s3_tfstate_bucket = core.getInput('s3_tfstate_bucket') || process.env['aws_secret_key']
+const dynamo_tflocks_table = core.getInput('dynamo_tflocks_table') || process.env['dynamo_tflocks_table']
 const workspacePrefix = 'zpr-';
+
+
 
 console.log("main.js started");
 
@@ -25,12 +32,33 @@ async function run(): Promise<void> {
             throw new Error(`Missing required input 'token'.`)
         }
         // Check required inputs
-        if (!tfc_api_token) {
-            throw new Error(`Missing required input 'terraform_cloud_api_token'.`)
+        if (!terraform_backend) {
+            throw new Error('Missing required input `terraform_backend`');
         }
-        // Check required inputs
-        if (!tfc_org) {
-            throw new Error(`Missing required input 'tfc_org'.`)
+        if (terraform_backend != "tfc" && terraform_backend != "s3") {
+            throw new Error(`Invalid terraform_backend value: ${terraform_backend}`)
+        }
+        if (terraform_backend === "tfc") {
+            if (!tfc_api_token) {
+                throw new Error(`Missing required input 'terraform_cloud_api_token'.`)
+            }
+            if (!tfc_org) {
+                throw new Error(`Missing required input 'tfc_org'.`)
+            }
+        }
+        if (terraform_backend === "s3") {
+            if (!aws_access_id) {
+                throw new Error('Missing required input `aws_access_id`')
+            }
+            if (!aws_secret_key) {
+                throw new Error('Missing required input `aws_secret_key`')
+            }
+            if (!s3_tfstate_bucket) {
+                throw new Error('Missing required input `s3_tfstate_bucket`')
+            }
+            if (!dynamo_tflocks_table) {
+                throw new Error('Missing required input `dynamo_tflocks_table`')
+            }
         }
 
         // Check required context properties exist (satisfy type checking)
@@ -48,27 +76,17 @@ async function run(): Promise<void> {
         let prInfo = await githubHelper.getPullRequest();
         let workspaceName = `${workspacePrefix}${prInfo.branch}`;
 
-        // terraform setup
-        // how to figure out which backend to use??
-        // by default TFC w/ s3 as an opt-in
 
-        // default to tfc backend
-        const cloudBackend = new CloudBackend(
-            tfc_org as string,
-            tfc_api_token as string,
-            workspaceName
-        );
-        let tfBackend : TerraformBackend = cloudBackend;
-
-        // if there's not already an exiting TFC workspace check for an s3 workspace
-        if (!(await cloudBackend.hasExistingWorkspace())) {
-            const s3Backend = new S3Backend(workspaceName)
-            // if it exists, use the S3 Backend, otherwise keep the default TFC backend
-            if (await s3Backend.hasExistingWorkspace()) {
-                tfBackend = s3Backend
-            }
+        let terraformBackend: TerraformBackend;
+        if (terraform_backend === 'tfc') {
+            terraformBackend = new CloudBackend(
+                tfc_api_token,
+                tfc_org,
+                workspaceName
+            )
+        } else {
+            terraformBackend = new S3Backend(workspaceName)
         }
-
         const tfcCli = new TerraformCli(tfBackend);
 
         // handle slash commands

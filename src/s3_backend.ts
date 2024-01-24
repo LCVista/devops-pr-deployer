@@ -13,16 +13,19 @@ import { CommandVars } from "./slash_command";
 export class S3Backend implements TerraformBackend {
     private readonly workspaceName: string;
     private readonly bucketName: string; 
+    private readonly dynamodbTable: string;
     private readonly s3Client: S3Client;
 
     constructor(
-        workspaceName: string
+        workspaceName: string,
+        bucketName: string,
+        dynamodbTable: string
     ) {
-        this.bucketName = "lcv-tfstate"
+        this.bucketName = bucketName;
+        this.dynamodbTable = dynamodbTable;
         this.workspaceName = workspaceName;
-        this.s3Client = new S3Client()
+        this.s3Client = new S3Client();
     }
-
     
     public async cleanUp(): Promise<boolean> {
         await this.s3Client.send(new DeleteObjectCommand({

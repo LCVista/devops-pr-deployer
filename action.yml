@@ -10,12 +10,21 @@ inputs:
   gh_org_name:
     description: 'The organization name where private terraform modules are located'
     required: true
+  terraform_backend:
+    description: 'choose a terraform backend. Choices are "tfc" or "s3"'
+    required: true
   terraform_cloud_api_token:
-    description: 'A token for Terraform cloud'
-    required: true
+    description: 'A token for Terraform cloud. required for TFC backend'
   terraform_org:
-    description: 'The Terraform cloud organization'
-    required: true
+    description: 'The Terraform cloud organization. required for TFC backend'
+  aws_access_id:
+    description: 'AWS access key id for accessing tfstate s3/dynamodb. required for S3 backend.'
+  aws_secret_key:
+    description: 'AWS secret key for accessing tfstate s3/dynamodb. required for S3 backend'
+  s3_tfstate_bucket:
+    description: 's3 bucket for storing tfstate. required for S3 backend'
+  dynamo_tflocks_table:
+    description: 'dynamodb table for tracking workspace locks. required for s3 backend'
 outputs:
   error-message:
     description: "Any errors that occur"
@@ -50,6 +59,13 @@ runs:
       with:
         cli_config_credentials_token: ${{ inputs.terraform_cloud_api_token }}
         terraform_wrapper: false
+    - name: setup aws credentials
+      if: ${{ inputs.terraform_backend === "s3" }}
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ inputs.aws_access_id }}
+        aws-secret-access-key: ${{ inputs.aws_secret_key }}
+        aws-region: us-west-2
     - name: 'Run Script'
       run: 'node $GITHUB_ACTION_PATH/dist/index.js'
       shell: 'bash'
@@ -57,6 +73,8 @@ runs:
         gh_comment_token: ${{ inputs.gh_comment_token }}
         terraform_cloud_api_token: ${{ inputs.terraform_cloud_api_token }}
         terraform_org: ${{ inputs.terraform_org }}
+        s3_tfstate_bucket: ${{ inputs.s3_tfstate_bucket }}
+        dynamo_tflocks_table: ${{ inputs.dynamo_tflocks_table }}
 
 branding:
   icon: 'target'
