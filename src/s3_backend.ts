@@ -73,11 +73,11 @@ export class S3Backend implements TerraformBackend {
     }
 
     private tfvarsKey() {
-        return `${this.workspaceName}/terraform.tfvars.json`
+        return `${this.workspaceName}/terraform.tfvars.json`;
     }
     
     private tfstateKey() {
-        return `${this.workspaceName}/terraform.tfstate`
+        return `${this.workspaceName}/terraform.tfstate`;
     }
 
     private async saveVariableState(variables: CommandVars): Promise<boolean> {
