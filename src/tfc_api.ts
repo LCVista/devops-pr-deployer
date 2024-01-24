@@ -116,7 +116,7 @@ export class TerraformCloudApi {
             let body = await response.json() as any;
             return body.data.id;
         } else {
-            throw new MissingWorkspaceError("Workspace does not exist")
+            throw new Error("Workspace does not exist")
         }
     }
     
