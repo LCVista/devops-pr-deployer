@@ -53,7 +53,6 @@ export class S3Backend implements TerraformBackend {
         );
     }
 
-
     public async setupVariables(
         prInfo: PullRequestInfo, 
         cmdVars: CommandVars
@@ -87,13 +86,12 @@ export class S3Backend implements TerraformBackend {
             "Key": this.tfvarsKey(),
             "Body":  JSON.stringify(variables)
         });
-
         const response = this.s3Client.send(command);
 
-        return true
+        return true;
     }
 
-    public async getVariableState(): Promise<CommandVars> {
+    private async getVariableState(): Promise<CommandVars> {
         const command = new GetObjectCommand({
             "Bucket": this.bucketName,
             "Key": this.tfvarsKey(),
