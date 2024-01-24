@@ -52,9 +52,12 @@ export async function handleSlashCommand(
             `Environment is ready at [${previewUrl}](${previewUrl})\n\n` +
             "```" + output + "```"
         );
+        await githubHelper.addReaction(commentId, "rocket");
         return;
     } else {
-        console.debug('Unknown command')
+        console.debug(
+            'Unknown command'
+        )
         return;
     }
 }
