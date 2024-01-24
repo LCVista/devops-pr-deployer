@@ -54,6 +54,7 @@ export async function handleSlashCommand(
         );
         await githubHelper.addReaction(commentId, "rocket");
         return;
+
     } else {
         console.debug(
             'Unknown command'
