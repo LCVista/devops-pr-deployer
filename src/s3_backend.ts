@@ -6,7 +6,6 @@ import {
     PutObjectCommand, 
     GetObjectCommand,
     DeleteObjectCommand,
-    NoSuchKey
 } from "@aws-sdk/client-s3";
 import { CommandVars } from "./slash_command";
 
