@@ -75,7 +75,7 @@ async function run(): Promise<void> {
 
         let prInfo = await githubHelper.getPullRequest();
         let workspaceName = `${workspacePrefix}${prInfo.branch}`;
-
+        console.log(`Workspace name=${workspaceName}, branch=${prInfo.branch}, sha1=${prInfo.sha1}`);
 
         let terraformBackend: TerraformBackend;
         if (terraform_backend === 'tfc') {
