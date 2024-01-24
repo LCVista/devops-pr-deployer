@@ -1,12 +1,12 @@
 import { PullRequestInfo } from "./gh_helper";
 import { CommandVars } from "./slash_command";
-import { TerraformCloudApi } from "./tfc_api";
 const { execSync } = require("child_process");
 
 export type TerraformBackend = {
     configure: () => boolean,
     cleanUp: () => Promise<boolean>,
     setupVariables: (prInfo: PullRequestInfo, cmdVars: CommandVars) => Promise<boolean>
+    hasExistingWorkspace: () => Promise<boolean>
 }
 
 export class TerraformCli {

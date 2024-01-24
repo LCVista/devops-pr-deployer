@@ -3,7 +3,7 @@ import * as github from '@actions/github'
 import {handleSlashCommand} from "./slash_command";
 import {handlePrClosed} from "./pr_closed";
 import {TerraformCloudApi} from "./tfc_api";
-import {TerraformCli} from "./tfc_cli";
+import {TerraformBackend, TerraformCli} from "./tfc_cli";
 import {getIssueNumber, GithubHelper} from "./gh_helper";
 import { CloudBackend } from './tfc_backend';
 import { S3Backend } from './s3_backend';
@@ -49,18 +49,27 @@ async function run(): Promise<void> {
         let workspaceName = `${workspacePrefix}${prInfo.branch}`;
 
         // terraform setup
-        let tfBackend;
-        if (cmdVars.backend === "s3") {
-            tfBackend = new S3Backend(workspaceName)
-        } else {
-            tfBackend = new CloudBackend(
-                tfc_org as string,
-                tfc_api_token as string,
-                workspaceName
-            )
+        // how to figure out which backend to use??
+        // by default TFC w/ s3 as an opt-in
+
+        // default to tfc backend
+        const cloudBackend = new CloudBackend(
+            tfc_org as string,
+            tfc_api_token as string,
+            workspaceName
+        );
+        let tfBackend : TerraformBackend = cloudBackend;
+
+        // if there's not already an exiting TFC workspace check for an s3 workspace
+        if (!(await cloudBackend.hasExistingWorkspace())) {
+            const s3Backend = new S3Backend(workspaceName)
+            // if it exists, use the S3 Backend, otherwise keep the default TFC backend
+            if (await s3Backend.hasExistingWorkspace()) {
+                tfBackend = s3Backend
+            }
         }
 
-        const tfcCli = new TerraformCli(tfBackend, cmdVars, prInfo);
+        const tfcCli = new TerraformCli(tfBackend);
 
         // handle slash commands
         if (github.context.eventName === 'issue_comment') {

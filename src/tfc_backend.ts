@@ -5,7 +5,7 @@ import { TerraformBackend } from "./tfc_cli";
 import { CommandVars } from "./slash_command";
 
 export class CloudBackend implements TerraformBackend {
-    public readonly tfcApi: TerraformCloudApi;
+    private readonly tfcApi: TerraformCloudApi;
     private readonly workspaceName: string;
 
     constructor(
@@ -95,6 +95,10 @@ export class CloudBackend implements TerraformBackend {
         }
 
         return true
+    }
+    
+    public async hasExistingWorkspace() {
+        return this.tfcApi.hasExistingWorkspace();
     }
 }
     

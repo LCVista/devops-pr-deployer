@@ -5,7 +5,8 @@ import {
     S3Client, 
     PutObjectCommand, 
     GetObjectCommand,
-    DeleteObjectCommand
+    DeleteObjectCommand,
+    NoSuchKey
 } from "@aws-sdk/client-s3";
 import { CommandVars } from "./slash_command";
 
@@ -21,6 +22,7 @@ export class S3Backend implements TerraformBackend {
         this.workspaceName = workspaceName;
         this.s3Client = new S3Client()
     }
+
     
     public async cleanUp(): Promise<boolean> {
         await this.s3Client.send(new DeleteObjectCommand({
@@ -53,6 +55,7 @@ export class S3Backend implements TerraformBackend {
         return true
     }
 
+
     public async setupVariables(
         prInfo: PullRequestInfo, 
         cmdVars: CommandVars
@@ -70,6 +73,19 @@ export class S3Backend implements TerraformBackend {
         );
 
         return await this.saveVariableState(variables)
+    }
+
+    public async hasExistingWorkspace(): Promise<boolean> {
+        try {
+            const variables = this.getVariableState()
+            return !!variables
+        } catch (e) {
+            if (e instanceof NoSuchKey) {
+                return false;
+            } else {
+                throw e;
+            }
+        }
     }
 
     private tfvarsKey() {
@@ -92,7 +108,7 @@ export class S3Backend implements TerraformBackend {
         return true
     }
 
-    private async getVariableState(): Promise<CommandVars> {
+    public async getVariableState(): Promise<CommandVars> {
         const command = new GetObjectCommand({
             "Bucket": this.bucketName,
             "Key": this.tfvarsKey(),
