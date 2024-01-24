@@ -48,9 +48,10 @@ export async function handleSlashCommand(
         let output = tfcCli.tfOutput();
         console.log(output);
 
-        const comment = `Environment is ready at [${previewUrl}](${previewUrl})\n\n` + "```" + output + "```"
-        await githubHelper.addComment(comment)
-        await githubHelper.addReaction(commentId, "rocket");
+        await githubHelper.addComment(`Environment is ready at [${previewUrl}](${previewUrl})` +
+        "\n\n" +
+        "```" +
+        output + "```");
         return;
     } else {
         console.debug('Unknown command')
