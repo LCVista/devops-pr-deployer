@@ -60,7 +60,7 @@ runs:
         cli_config_credentials_token: ${{ inputs.terraform_cloud_api_token }}
         terraform_wrapper: false
     - name: setup aws credentials
-      if: inputs.terraform_backend == "s3"
+      if: inputs.terraform_backend == 's3'
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ inputs.aws_access_id }}
