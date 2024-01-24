@@ -90,7 +90,11 @@ async function run(): Promise<void> {
                     commentBody
                 );
             } catch (e: any) {
-                await reportHandlerError("slash command", e.message)
+                let errorMessage = `I ran into an error processing the slash command.  Here's more information:\n\n` +
+                `\`\`\`${e.message}\`\`\``;
+
+                await githubHelper.addReaction(commentId, "-1");
+                await githubHelper.addComment(errorMessage);
             }
         } else if (github.context.eventName === 'pull_request') {
             if (github.context.payload.action === 'closed') {
@@ -101,7 +105,8 @@ async function run(): Promise<void> {
                         githubHelper
                     );
                 } catch (e: any) {
-                    await reportHandlerError(githubHelper, "pr closed", e.message)
+                    let errorMessage = `I ran into an error handling the closed PR. Here's more information:\n${e.message}`;
+                    await githubHelper.addComment(errorMessage);
                 }
             }
         }
