@@ -1,9 +1,9 @@
-import {TerraformCloudApi} from "./tfc_api";
 import {TerraformCli} from "./tfc_cli";
 import {GithubHelper} from "./gh_helper";
+import { TerraformBackend } from "./types";
 
 export async function handlePrClosed(
-    tfcApi: TerraformCloudApi,
+    tfcApi: TerraformBackend,
     tfcCli: TerraformCli,
     ghHelper: GithubHelper
 ){

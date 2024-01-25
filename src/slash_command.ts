@@ -1,11 +1,11 @@
 import {HELP_TEXT} from "./command_help";
 import {TerraformCli} from "./tfc_cli";
-import {TerraformCloudApi} from "./tfc_api";
 import {GithubHelper, PullRequestInfo} from "./gh_helper";
 import {handlePrClosed} from "./pr_closed";
+import { TerraformBackend } from "./types";
 
 export async function handleSlashCommand(
-    tfcApi: TerraformCloudApi,
+    tfcApi: TerraformBackend,
     tfcCli: TerraformCli,
     githubHelper: GithubHelper,
     prInfo: PullRequestInfo,

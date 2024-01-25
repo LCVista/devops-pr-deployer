@@ -7,6 +7,7 @@ import {TerraformCli} from "./tfc_cli";
 import {getIssueNumber, GithubHelper} from "./gh_helper";
 import { TerraformBackend } from './types';
 import { TerraformS3Api } from './s3_backend_api';
+import { error } from 'console';
 
 const github_token = core.getInput('gh_comment_token') || process.env['gh_comment_token'];
 const tfc_api_token = core.getInput('terraform_cloud_api_token') || process.env['terraform_cloud_api_token'];
@@ -20,6 +21,18 @@ const workspacePrefix = 'zpr-';
 
 console.log("main.js started");
 
+async function reportError(message: string, err: Error, githubHelper: GithubHelper, commentId: number) {
+    let errorMessage = `${message}\n`
+    errorMessage += `Here's more information:\n\n`
+    errorMessage += '```' + err.message
+    if (err.stack) {
+        errorMessage += `\n${err.stack}`;
+    }
+    errorMessage += '```'
+
+    await githubHelper.addReaction(commentId, "-1");
+    await githubHelper.addComment(errorMessage);
+}
 async function run(): Promise<void> {
     // Do validation first, but do not comment on PR
     try {
@@ -112,12 +125,8 @@ async function run(): Promise<void> {
                     commentId,
                     commentBody
                 );
-            } catch (e: any) {
-                let errorMessage = `I ran into an error processing the slash command.  Here's more information:\n\n` +
-                    `\`\`\`${e.message}\`\`\``;
-
-                await githubHelper.addReaction(commentId, "-1");
-                await githubHelper.addComment(errorMessage);
+            } catch (err: any) {
+                await reportError('I ran into an error processing the slash command.', err, githubHelper, commentId);
             }
         } else if (github.context.eventName === 'pull_request') {
             if (github.context.payload.action === 'closed') {
