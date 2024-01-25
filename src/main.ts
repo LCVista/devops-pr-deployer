@@ -45,6 +45,9 @@ async function run(): Promise<void> {
         if (terraform_backend != "tfc" && terraform_backend != "s3") {
             throw new Error(`Invalid terraform_backend value: ${terraform_backend}`)
         }
+
+        console.log(`selected terraform_backend: ${terraform_backend}`)
+
         if (terraform_backend === "tfc") {
             if (!tfc_api_token) {
                 throw new Error(`Missing required input 'terraform_cloud_api_token'.`)
