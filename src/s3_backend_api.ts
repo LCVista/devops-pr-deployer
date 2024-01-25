@@ -1,6 +1,6 @@
 import fs from "fs";
 import { ExistingVars, TerraformBackend } from "./types";
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, NoSuchKey } from "@aws-sdk/client-s3";
 import { ExistingVar } from "./tfc_api";
 
 const TFVARS_FILENAME = 'terraform.tfvars.json';
@@ -38,25 +38,33 @@ export class TerraformS3Api implements TerraformBackend {
         );
     }
 
-    public async getExistingVars(workspaceId): Promise<ExistingVars>{
+    public async getExistingVars(): Promise<ExistingVars>{
         const s3cmd = new GetObjectCommand({
             "Bucket": this.s3Bucket,
             "Key": this.tfVarsS3Key()
         })
-        const resp = await this.s3Client.send(s3cmd);
-        const respBody = (await resp.Body?.transformToString()) || "{}";
-        const remoteVars = JSON.parse(respBody)
+        try {
+            const resp = await this.s3Client.send(s3cmd);
+            const respBody = (await resp.Body?.transformToString()) || "{}";
+            const remoteVars = JSON.parse(respBody)
 
-        const reducer = (acc, key) => {
-            acc[key] = {
-                id: "",
-                name: key,
-                value: remoteVars[key],
-            };
+            const reducer = (acc, key) => {
+                acc[key] = {
+                    id: "",
+                    name: key,
+                    value: remoteVars[key],
+                };
 
-            return acc;
+                return acc;
+            }
+            this.existingVars = remoteVars.reduce(reducer, {});
+        } catch (err) {
+            if (err instanceof NoSuchKey) { 
+                return {};
+            } else {
+                throw err
+            }
         }
-        this.existingVars = remoteVars.reduce(reducer, {});
 
         return this.existingVars;
     }
