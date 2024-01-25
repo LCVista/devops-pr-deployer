@@ -23,7 +23,7 @@ console.log("main.js started");
 async function run(): Promise<void> {
     // Do validation first, but do not comment on PR
     try {
-        console.log(`Received eventName=${github.context.eventName} and action=${github.context.payload.action}`);
+        console.log(`Received eventName=${github.context.eventName} action=${github.context.payload.action} terraform_bakend=${terraform_backend}`);
 
         // Check required inputs
         if (!github_token) {
@@ -75,6 +75,14 @@ async function run(): Promise<void> {
         let workspaceName = `${workspacePrefix}${prInfo.branch}`;
         console.log(`Workspace name=${workspaceName}, branch=${prInfo.branch}, sha1=${prInfo.sha1}`);
 
+        // let tfcApi = new TerraformCloudApi(tfc_api_token, tfc_org, workspaceName);
+        let tfcApi = new CloudBackend(
+            new TerraformCloudApi(tfc_api_token, tfc_org, workspaceName),
+            workspaceName
+        )
+
+        let tfcCli = new TerraformCli(tfc_org, workspaceName);
+
         let terraformBackend: TerraformBackend;
         if (terraform_backend === 'tfc') {
             terraformBackend = new CloudBackend(
@@ -89,7 +97,7 @@ async function run(): Promise<void> {
                 workspaceName
             );
         }
-        const tfcCli = new TerraformCli(terraformBackend);
+        const tfcCli = new TerraformCli();
 
         if (github.context.eventName === 'issue_comment') {
             if (!github.context.payload.comment) {

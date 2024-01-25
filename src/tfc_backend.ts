@@ -35,17 +35,17 @@ export class CloudBackend implements TerraformBackend {
         prInfo: PullRequestInfo, 
         variables: CommandVars
     ): Promise<boolean> {
-        const { tfcApi } = this
+        const { tfcapi } = this
 
         // handle input vars here
-        let workspaceId = await tfcApi.getWorkspaceId();
-        console.log(`workspaceId = ${workspaceId}`);
+        let workspaceid = await tfcapi.getworkspaceid();
+        console.log(`workspaceid = ${workspaceid}`);
 
-        let existingVars = await tfcApi.getExistingVars(workspaceId);
-        console.log(`existingVars= ${existingVars}`);
+        let existingvars = await tfcapi.getexistingvars(workspaceid);
+        console.log(`existingvars= ${existingvars}`);
 
         let env_vars = {};
-        let allSet = true;
+        let allset = true;
         allSet &&= await tfcApi.setVariable(workspaceId, existingVars["git_branch"], "git_branch", prInfo.branch);
         env_vars['git_branch'] = prInfo.branch;
         allSet &&= await tfcApi.setVariable(workspaceId,existingVars["git_sha1"], "git_sha1", prInfo.sha1);

@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import { TerraformBackend } from './tfc_cli';
 
 type ExistingVar = {
     id: string,
@@ -17,6 +18,7 @@ export class TerraformCloudApi {
                 orgId: string,
                 workspaceName: string,
                 baseDomain: string | undefined = undefined,
+                backend: TerraformBackend,
                 fetchMock: ((url, opts) => Promise<any>) | undefined = undefined
     ) {
         this.baseDomain = baseDomain ? baseDomain : "app.terraform.io";
@@ -35,6 +37,8 @@ export class TerraformCloudApi {
         } else {
             console.log(`Setting variable varId=${varId} key='${name}' value='${value}'`);
         }
+        
+        
         let post_payload = {
             "data": {
                 "type": "vars",

@@ -28,6 +28,22 @@ export class S3Backend implements TerraformBackend {
         this.s3Client = new S3Client();
     }
     
+    public async setVariable(workspaceId, exitingValue, name, value): Promise<boolean> {
+        if (existingValue && existingValue.value === value) {
+            console.log(`Skipping varId=${varId} key=${name} because value=${value} already present=${existingValue.value}`);
+            return true
+        } else {
+            console.log(`Setting variable varId=${varId} key='${name}' value='${value}'`);
+        }
+
+        variables[name] = value
+
+        await this.saveVariableState()
+
+        return true
+    }
+
+
     public async cleanUp(): Promise<boolean> {
         await this.s3Client.send(new DeleteObjectCommand({
             "Bucket": this.bucketName,
@@ -58,14 +74,17 @@ export class S3Backend implements TerraformBackend {
     }
 
     public async setupVariables(
+        branchName: string,
+        sha1: string,
         prInfo: PullRequestInfo, 
         cmdVars: CommandVars
     ): Promise<boolean> {
-        const savedVars = await this.getVariableState();
-        let variables = {...savedVars, ...cmdVars};
 
-        variables.git_branch = prInfo.branch;
-        variables.sha1 = prInfo.sha1;
+        const savedVars = await this.getVariableState();
+        let variables : CommandVars = {...savedVars, ...cmdVars};
+
+        variables.git_branch = branchName;
+        variables.sha1 = sha1;
         
         console.log(`recieved variables ${variables}`);
 
@@ -94,7 +113,7 @@ export class S3Backend implements TerraformBackend {
         const command = new PutObjectCommand({
             "Bucket": this.bucketName,
             "Key": this.tfvarsKey(),
-            "Body":  JSON.stringify(variables)
+            "Body":  JSON.stringify(this.variables)
         });
         const response = this.s3Client.send(command);
         console.log("saved")

@@ -2,8 +2,10 @@ import {HELP_TEXT} from "./command_help";
 import {TerraformCli} from "./tfc_cli";
 import {GithubHelper, PullRequestInfo} from "./gh_helper";
 import {handlePrClosed} from "./pr_closed";
+import { TerraformCloudApi } from "./tfc_api";
 
 export async function handleSlashCommand(
+    tfcApi: TerraformCloudApi,
     tfcCli: TerraformCli,
     githubHelper: GithubHelper,
     prInfo: PullRequestInfo,
@@ -37,9 +39,61 @@ export async function handleSlashCommand(
 
         tfcCli.tfInit();
 
-        let variables = extractVars(firstLine.slice(7).trim());
+        // FUCK
 
-        tfcCli.backend.setupVariables(prInfo, variables)
+        // handle input vars here
+
+        // get previously set variables from backend
+        // TODO: manage s3 backend differences
+        // s3 doesn't (technically) reauire a workspaceid
+        let workspaceid = await tfcApi.getworkspaceid();
+        console.log(`workspaceid = ${workspaceid}`);
+        let existingvars = await tfcApi.getexistingvars(workspaceid);
+        console.log(`existingvars= ${existingvars}`);
+
+        let env_vars = {};
+        let allset = true;
+        // manage setVariable differences
+        // 
+        allSet &&= await tfcApi.setVariable(workspaceId, existingVars["git_branch"], "git_branch", prInfo.branch);
+        env_vars['git_branch'] = prInfo.branch;
+        allSet &&= await tfcApi.setVariable(workspaceId,existingVars["git_sha1"], "git_sha1", prInfo.sha1);
+        env_vars['git_sha1'] = prInfo.sha1;
+
+        for (let key in existingVars) {
+            if (key !== 'env_vars') {
+                env_vars[key] = existingVars[key].value;
+            }
+        }
+
+        let variables = extractVars(firstLine.slice(7).trim());
+        console.log(`recieved variables `, variables);
+
+        for (let key in variables) {
+            if (key !== 'env_vars') {
+                env_vars[key] = variables[key];
+                allSet &&= await tfcApi.setVariable(workspaceId, existingVars[key], key, variables[key]);
+            } else {
+                // do nothing
+            }
+        }
+
+        let env_vars_string = "{\n";
+        for (let key in env_vars) {
+            env_vars_string += `"${key}"="${env_vars[key]}"\n`
+        }
+        env_vars_string += "}\n";
+        allSet &&= await tfcApi.setVariable(workspaceId, existingVars['env_vars'], 'env_vars', env_vars_string);
+
+        if (!allSet) {
+            console.log("not all variables were set");
+            throw new Error ("Not all variables were set");
+        }
+
+        return true
+    }
+        // UNFUCK
+
         tfcCli.tfApply();
 
         let previewUrl = tfcCli.tfOutputOneVariable("preview_url");
