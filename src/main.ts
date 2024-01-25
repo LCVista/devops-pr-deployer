@@ -85,11 +85,16 @@ async function run(): Promise<void> {
 
         let tfcApi: TerraformBackend;
         if (terraform_backend.toLowerCase() === "s3") {
-            tfcApi = new TerraformS3Api(workspaceName, s3_bucket, s3_dynamodb_table)
+            tfcApi = new TerraformS3Api(
+                workspaceName, 
+                s3_bucket || "", 
+                s3_dynamodb_table || ""
+            )
+        } else {
+            tfcApi = new TerraformCloudApi(tfc_api_token, tfc_org, workspaceName);
         }
 
-        tfcApi = new TerraformCloudApi(tfc_api_token, tfc_org, workspaceName);
-        let tfcCli = new TerraformCli(tfc_org, workspaceName);
+        let tfcCli = new TerraformCli(tfcApi);
         console.log(`Workspace name=${workspaceName}, branch=${prInfo.branch}, sha1=${prInfo.sha1}`);
 
         if (github.context.eventName === 'issue_comment') {
