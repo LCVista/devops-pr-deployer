@@ -67,7 +67,7 @@ runs:
         aws-secret-access-key: ${{ inputs.aws_secret_key }}
         aws-region: us-west-2
     - name: 'Run Script'
-      run: 'node $GITHUB_ACTION_PATH/dist/index.js'
+      run: 'node --enable-source-maps $GITHUB_ACTION_PATH/dist/index.js'
       shell: 'bash'
       env:
         gh_comment_token: ${{ inputs.gh_comment_token }}
