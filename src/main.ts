@@ -29,14 +29,6 @@ async function run(): Promise<void> {
         if (!github_token) {
             throw new Error(`Missing required input 'token'.`)
         }
-        // Check required inputs
-        if (!tfc_api_token) {
-            throw new Error(`Missing required input 'terraform_cloud_api_token'.`)
-        }
-        // Check required inputs
-        if (!tfc_org) {
-            throw new Error(`Missing required input 'tfc_org'.`)
-        }
 
         if (!terraform_backend) {
             throw new Error('Missing required input `terraform_backend`');
