@@ -71,6 +71,7 @@ runs:
       shell: 'bash'
       env:
         gh_comment_token: ${{ inputs.gh_comment_token }}
+        terraform_backend: ${{ inputs.terraform_backend }}
         terraform_cloud_api_token: ${{ inputs.terraform_cloud_api_token }}
         terraform_org: ${{ inputs.terraform_org }}
         s3_bucket: ${{ inputs.s3_bucket }}
