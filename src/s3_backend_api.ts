@@ -109,7 +109,4 @@ export class TerraformS3Api implements TerraformBackend {
 
         return true;
     }
-
-
-
 }
