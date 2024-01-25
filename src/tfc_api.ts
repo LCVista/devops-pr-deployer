@@ -1,12 +1,13 @@
 import fetch from 'node-fetch';
+import { TerraformBackend } from './types';
 
-type ExistingVar = {
+export type ExistingVar = {
     id: string,
     name: string,
     value: string
 }
 
-export class TerraformCloudApi {
+export class TerraformCloudApi implements TerraformBackend {
     private readonly tfcApiToken: string;
     public readonly orgId: string;
     public readonly workspaceName: string;
@@ -25,6 +26,20 @@ export class TerraformCloudApi {
         this.workspaceName = workspaceName;
         // for mocking
         this.__fetch = fetchMock ? fetchMock : fetch;
+    }
+
+    public configBlock(): string {
+        return (
+`terraform {
+    cloud {
+        hostname     = "${this.baseDomain}"
+        organization = "${this.orgId}"
+        workspaces {
+        name = "${this.workspaceName}"
+        }
+    }
+}`
+        );
     }
 
     public async setVariable(workspaceId, existingValue, name, value): Promise<boolean> {

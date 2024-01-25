@@ -20,12 +20,12 @@ let mockFetch = jest.fn( (url, opts): Promise<any> => {
 });
 let mockedTfcApi = new TerraformCloudApi("unit_test", "test_org", "test_workspace", undefined, mockFetch);
 jest.spyOn(mockedTfcApi, "getExistingVars").mockImplementation( (workspaceId: string) => {
-    return Promise.resolve( {
-       "var1":  {
-           id: "id1",
-           name: "var1",
-           value: "val1"
-       }
+    return Promise.resolve({
+        "var1":  {
+            id: "id1",
+            name: "var1",
+            value: "val1"
+        }
     });
 });
 
@@ -41,7 +41,7 @@ let mockExec = jest.fn( (cmd: string): Buffer => {
         return new Buffer("succeeded");
     }
 });
-let mockedTfcCli = new TerraformCli("test_org", "test_workspace", undefined, mockExec);
+let mockedTfcCli = new TerraformCli(mockedTfcApi, mockExec);
 
 let mockOctokit = {
     rest: {

@@ -5,10 +5,17 @@ import {handlePrClosed} from "./pr_closed";
 import {TerraformCloudApi} from "./tfc_api";
 import {TerraformCli} from "./tfc_cli";
 import {getIssueNumber, GithubHelper} from "./gh_helper";
+import { TerraformBackend } from './types';
+import { TerraformS3Api } from './s3_backend_api';
 
 const github_token = core.getInput('gh_comment_token') || process.env['gh_comment_token'];
 const tfc_api_token = core.getInput('terraform_cloud_api_token') || process.env['terraform_cloud_api_token'];
 const tfc_org = core.getInput('terraform_org') || process.env['terraform_org'];
+const terraform_backend = core.getInput('terraform_backend') || process.env['terraform_backend'];
+const aws_access_id = core.getInput('aws_access_id') || process.env['aws_access_id'];
+const aws_secret_key = core.getInput('aws_secret_key') || process.env['aws_secret_key'];
+const s3_bucket = core.getInput('s3_bucket') || process.env['s3_bucket']
+const s3_dynamodb_table = core.getInput('s3_dynamodb_table') || process.env['s3_dynamodb_table']
 const workspacePrefix = 'zpr-';
 
 console.log("main.js started");
@@ -31,6 +38,36 @@ async function run(): Promise<void> {
             throw new Error(`Missing required input 'tfc_org'.`)
         }
 
+        if (!terraform_backend) {
+            throw new Error('Missing required input `terraform_backend`');
+        }
+
+        if (terraform_backend != "tfc" && terraform_backend != "s3") {
+            throw new Error(`Invalid terraform_backend value: ${terraform_backend}`)
+        }
+        if (terraform_backend === "tfc") {
+            if (!tfc_api_token) {
+                throw new Error(`Missing required input 'terraform_cloud_api_token'.`)
+            }
+            if (!tfc_org) {
+                throw new Error(`Missing required input 'tfc_org'.`)
+            }
+        }
+        if (terraform_backend === "s3") {
+            if (!aws_access_id) {
+                throw new Error('Missing required input `aws_access_id`')
+            }
+            if (!aws_secret_key) {
+                throw new Error('Missing required input `aws_secret_key`')
+            }
+            if (!s3_bucket) {
+                throw new Error('Missing required input `s3_bucket`')
+            }
+            if (!s3_dynamodb_table) {
+                throw new Error('Missing required input `s3_dynamodb_table`')
+            }
+        }
+
         // Check required context properties exist (satisfy type checking)
         if (!github.context.payload.repository) {
             throw new Error('github.context.payload.repository is missing.')
@@ -45,7 +82,13 @@ async function run(): Promise<void> {
 
         let prInfo = await githubHelper.getPullRequest();
         let workspaceName = `${workspacePrefix}${prInfo.branch}`;
-        let tfcApi = new TerraformCloudApi(tfc_api_token, tfc_org, workspaceName);
+
+        let tfcApi: TerraformBackend;
+        if (terraform_backend.toLowerCase() === "s3") {
+            tfcApi = new TerraformS3Api(workspaceName, s3_bucket, s3_dynamodb_table)
+        }
+
+        tfcApi = new TerraformCloudApi(tfc_api_token, tfc_org, workspaceName);
         let tfcCli = new TerraformCli(tfc_org, workspaceName);
         console.log(`Workspace name=${workspaceName}, branch=${prInfo.branch}, sha1=${prInfo.sha1}`);
 

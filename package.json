@@ -16,7 +16,7 @@
     "type": "git",
     "url": "git+https://github.com/LCVista/devops-pr-deployer.git"
   },
-  "keywords": [  ],
+  "keywords": [],
   "author": "LCvista",
   "license": "MIT",
   "bugs": {
@@ -26,6 +26,7 @@
   "dependencies": {
     "@actions/core": "^1.9.1",
     "@actions/github": "^5.0.0",
+    "@aws-sdk/client-s3": "^3.499.0",
     "@octokit/core": "^3.5.1",
     "@octokit/plugin-paginate-rest": "^2.17.0",
     "@octokit/plugin-rest-endpoint-methods": "^5.13.0",
