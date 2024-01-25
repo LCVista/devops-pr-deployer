@@ -61,7 +61,7 @@ export class TerraformS3Api implements TerraformBackend {
         return this.existingVars;
     }
 
-    public async setVariable(_workspaceId, existingValue, name, value): Promise<boolean> {
+    public async setVariable(existingValue, name, value): Promise<boolean> {
         if (existingValue && existingValue.value === value) {
             console.log(`Skipping key=${name} because value=${value} already present=${existingValue.value}`);
             return true;

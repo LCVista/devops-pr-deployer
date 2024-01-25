@@ -19,7 +19,7 @@ let mockFetch = jest.fn( (url, opts): Promise<any> => {
     });
 });
 let mockedTfcApi = new TerraformCloudApi("unit_test", "test_org", "test_workspace", undefined, mockFetch);
-jest.spyOn(mockedTfcApi, "getExistingVars").mockImplementation( (workspaceId: string) => {
+jest.spyOn(mockedTfcApi, "getExistingVars").mockImplementation( () => {
     return Promise.resolve({
         "var1":  {
             id: "id1",

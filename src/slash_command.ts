@@ -40,16 +40,14 @@ export async function handleSlashCommand(
         tfcCli.tfInit();
 
         // handle input vars here
-        let workspaceId = await tfcApi.getWorkspaceId();
-        console.log(`workspaceId = ${workspaceId}`);
-        let existingVars = await tfcApi.getExistingVars(workspaceId);
+        let existingVars = await tfcApi.getExistingVars();
         console.log(`existingVars= ${existingVars}`);
 
         let env_vars = {};
         let allSet = true;
-        allSet &&= await tfcApi.setVariable(workspaceId, existingVars["git_branch"], "git_branch", prInfo.branch);
+        allSet &&= await tfcApi.setVariable(existingVars["git_branch"], "git_branch", prInfo.branch);
         env_vars['git_branch'] = prInfo.branch;
-        allSet &&= await tfcApi.setVariable(workspaceId,existingVars["git_sha1"], "git_sha1", prInfo.sha1);
+        allSet &&= await tfcApi.setVariable(existingVars["git_sha1"], "git_sha1", prInfo.sha1);
         env_vars['git_sha1'] = prInfo.sha1;
 
         for (let key in existingVars) {
@@ -65,7 +63,7 @@ export async function handleSlashCommand(
         for (let key in variables) {
             if (key !== 'env_vars') {
                 env_vars[key] = variables[key];
-                allSet &&= await tfcApi.setVariable(workspaceId, existingVars[key], key, variables[key]);
+                allSet &&= await tfcApi.setVariable(existingVars[key], key, variables[key]);
             } else {
                 // do nothing
             }
@@ -76,7 +74,7 @@ export async function handleSlashCommand(
             env_vars_string += `"${key}"="${env_vars[key]}"\n`
         }
         env_vars_string += "}\n";
-        allSet &&= await tfcApi.setVariable(workspaceId, existingVars['env_vars'], 'env_vars', env_vars_string);
+        allSet &&= await tfcApi.setVariable(existingVars['env_vars'], 'env_vars', env_vars_string);
 
         if (!allSet) {
             console.log("not all variables were set");

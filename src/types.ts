@@ -7,6 +7,6 @@ export type ExistingVars = {
 export type TerraformBackend = {
   configBlock: () => string,
   setVariable: (workspaceId: string, existingValue: any, name: string, value: any) => Promise<boolean>
-  getExistingVars: (workspaceId: string) => Promise<ExistingVars>
+  getExistingVars: () => Promise<ExistingVars>
   deleteWorkspace: () => Promise<boolean>
 };
