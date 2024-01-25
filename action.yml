@@ -74,6 +74,8 @@ runs:
         terraform_backend: ${{ inputs.terraform_backend }}
         terraform_cloud_api_token: ${{ inputs.terraform_cloud_api_token }}
         terraform_org: ${{ inputs.terraform_org }}
+        aws_access_id: ${{ inputs.aws_access_id }}
+        aws_secret_key: ${{ inputs.aws_secret_key }}
         s3_bucket: ${{ inputs.s3_bucket }}
         s3_dynamodb_table: ${{ inputs.s3_dynamodb_table }}
 
