@@ -57,7 +57,7 @@ export class TerraformS3Api implements TerraformBackend {
 
                 return acc;
             }
-            this.existingVars = remoteVars.reduce(reducer, {});
+            this.existingVars = remoteVars.keys.reduce(reducer, {});
         } catch (err) {
             if (err instanceof NoSuchKey) { 
                 return {};
