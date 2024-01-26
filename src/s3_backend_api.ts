@@ -1,5 +1,5 @@
 import fs from "fs";
-import { ExistingVars, TerraformBackend } from "./types";
+import { ExistingVars, TerraformBackend, TFVars } from "./types";
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, NoSuchKey } from "@aws-sdk/client-s3";
 import { ExistingVar } from "./tfc_api";
 
@@ -31,7 +31,7 @@ export class TerraformS3Api implements TerraformBackend {
     backend "s3" {
         bucket = "${this.s3Bucket}"
         dynamodb_table = "${this.dynamodbTable}"
-        key = "${this.tfStateS3Key()}"
+        key = "${this.tfStateS3Key}"
         region = "us-west-2"
     }
 }`
@@ -41,7 +41,7 @@ export class TerraformS3Api implements TerraformBackend {
     public async getExistingVars(): Promise<ExistingVars>{
         const s3cmd = new GetObjectCommand({
             "Bucket": this.s3Bucket,
-            "Key": this.tfVarsS3Key()
+            "Key": this.tfVarsS3Key
         })
         try {
             const resp = await this.s3Client.send(s3cmd);
@@ -85,14 +85,14 @@ export class TerraformS3Api implements TerraformBackend {
     public async deleteWorkspace(): Promise<boolean> {
         const deleteVars = new DeleteObjectCommand({
             Bucket: this.s3Bucket,
-            Key: this.tfVarsS3Key()
+            Key: this.tfVarsS3Key
         })
 
         await this.s3Client.send(deleteVars)
 
         const deleteState = new DeleteObjectCommand({
             Bucket: this.s3Bucket,
-            Key: this.tfStateS3Key()
+            Key: this.tfStateS3Key
         })
 
         await this.s3Client.send(deleteState)
@@ -100,29 +100,36 @@ export class TerraformS3Api implements TerraformBackend {
         return true;
     }
 
-    private tfVarsS3Key(): string {
+    private get tfVarsS3Key(): string {
         return `${this.workspaceName}/${TFVARS_FILENAME}`;
     }
 
-    private tfStateS3Key(): string {
+    private get tfStateS3Key(): string {
         return `${this.workspaceName}/${TFSTATE_FILENAME}`;
     }
 
     private async updateExistingVars(name: string, value): Promise<boolean> {
         this.existingVars[name] = {name, value, id: ""} as ExistingVar;
-        const jsonVars = JSON.stringify(this.existingVars);
-
+        const tfvars = JSON.stringify(this.tfvars)
+        
         // write to local tfvars file
-        fs.writeFileSync(TFVARS_FILENAME, jsonVars)
+        fs.writeFileSync(TFVARS_FILENAME, tfvars)
 
         // write to tfvars file in s3
         const s3Cmd = new PutObjectCommand({
             "Bucket": this.s3Bucket,
-            "Key": this.tfVarsS3Key(),
-            "Body": jsonVars
+            "Key": this.tfVarsS3Key,
+            "Body": tfvars
         })
         await this.s3Client.send(s3Cmd);
 
         return true;
+    }
+
+    private get tfvars(): TFVars {
+        const reducer = (acc, existingVar: ExistingVar) => {
+            acc[existingVar.name] = existingVar.value
+        }
+        return Object.values(this.existingVars).reduce(reducer, {});
     }
 }
