@@ -58,7 +58,7 @@ export class TerraformCloudApi implements TerraformBackend {
                 "type": "vars",
                 "attributes": {
                     "key": name,
-                    "value": value,
+                    "value": name === "env_vars" ? hclFormat(value) : value,
                     "description": "provided by PR",
                     "category": "terraform",
                     "hcl": name === "env_vars",
@@ -157,4 +157,10 @@ export class TerraformCloudApi implements TerraformBackend {
             throw new Error("Workspace does not exist")
         }
     }
+}
+
+function hclFormat(data: {[key: string]: string}): string {
+    const reducer = (acc, key) => acc + `${key}=${data[key]}\n`
+    const fmtData = Object.keys(data).reduce(reducer, "")
+    return "{\n" + fmtData + "\n}";
 }

@@ -69,12 +69,7 @@ export async function handleSlashCommand(
             }
         }
 
-        let env_vars_string = "{\n";
-        for (let key in env_vars) {
-            env_vars_string += `"${key}"="${env_vars[key]}"\n`
-        }
-        env_vars_string += "}\n";
-        allSet &&= await tfcApi.setVariable(existingVars['env_vars'], 'env_vars', env_vars_string);
+        allSet &&= await tfcApi.setVariable(existingVars['env_vars'], 'env_vars', env_vars);
 
         if (!allSet) {
             console.log("not all variables were set");
