@@ -35,10 +35,12 @@
     "node-fetch": "2"
   },
   "devDependencies": {
+    "@smithy/util-stream": "^2.1.1",
     "@types/jest": "^27.0.3",
     "@types/node": "^16.11.11",
     "@typescript-eslint/parser": "^5.5.0",
     "@vercel/ncc": "^0.32.0",
+    "aws-sdk-client-mock": "^3.0.1",
     "esbuild": "^0.14.39",
     "eslint": "^8.3.0",
     "eslint-plugin-github": "^4.3.5",

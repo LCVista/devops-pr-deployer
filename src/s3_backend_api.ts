@@ -7,16 +7,16 @@ const TFVARS_FILENAME = 'terraform.tfvars.json';
 const TFSTATE_FILENAME = 'terraform.tfstate';
 
 export class TerraformS3Api implements TerraformBackend {
-    private readonly workspaceName: string;
-    private readonly s3Bucket: string;
+    public readonly workspaceName: string;
     private readonly dynamodbTable: string;
+    private readonly s3Bucket: string;
     private readonly s3Client: S3Client;
     private existingVars: ExistingVars;
 
     constructor(
         workspaceName: string,
         s3Bucket: string,
-        dynamodbTable: string,
+        dynamodbTable: string
     ) {
         this.s3Bucket = s3Bucket;
         this.dynamodbTable = dynamodbTable;
@@ -47,6 +47,7 @@ export class TerraformS3Api implements TerraformBackend {
             const resp = await this.s3Client.send(s3cmd);
             const respBody = (await resp.Body?.transformToString()) || "{}";
             const remoteVars = JSON.parse(respBody)
+            console.log(`recieved remoteVars: ${JSON.stringify(remoteVars)}`)
 
             const reducer = (acc, key) => {
                 acc[key] = {
@@ -57,7 +58,7 @@ export class TerraformS3Api implements TerraformBackend {
 
                 return acc;
             }
-            this.existingVars = remoteVars.keys.reduce(reducer, {});
+            this.existingVars = Object.keys(remoteVars).reduce(reducer, {});
         } catch (err) {
             if (err instanceof NoSuchKey) { 
                 return {};
@@ -82,12 +83,19 @@ export class TerraformS3Api implements TerraformBackend {
     }
 
     public async deleteWorkspace(): Promise<boolean> {
-        const s3Cmd = new DeleteObjectCommand({
+        const deleteVars = new DeleteObjectCommand({
             Bucket: this.s3Bucket,
             Key: this.tfVarsS3Key()
         })
 
-        const resp = this.s3Client.send(s3Cmd)
+        await this.s3Client.send(deleteVars)
+
+        const deleteState = new DeleteObjectCommand({
+            Bucket: this.s3Bucket,
+            Key: this.tfStateS3Key()
+        })
+
+        await this.s3Client.send(deleteState)
 
         return true;
     }

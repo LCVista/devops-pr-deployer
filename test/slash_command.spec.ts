@@ -5,6 +5,12 @@ import {getOctokit} from "@actions/github";
 import {GithubHelper, PullRequestInfo} from "../src/gh_helper";
 import {HELP_TEXT} from "../src/command_help";
 import exp from "constants";
+import { TerraformS3Api } from "../src/s3_backend_api";
+import { mockClient, AwsClientStub } from "aws-sdk-client-mock";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {Readable} from 'stream';
+import {createReadStream} from 'fs';
+import {sdkStreamMixin} from '@smithy/util-stream';
 
 let mockFetch = jest.fn( (url, opts): Promise<any> => {
     return Promise.resolve({
@@ -18,8 +24,8 @@ let mockFetch = jest.fn( (url, opts): Promise<any> => {
         }
     });
 });
-let mockedTfcApi = new TerraformCloudApi("unit_test", "test_org", "test_workspace", undefined, mockFetch);
-jest.spyOn(mockedTfcApi, "getExistingVars").mockImplementation( () => {
+
+let mockGetExistingVars = () => {
     return Promise.resolve({
         "var1":  {
             id: "id1",
@@ -27,7 +33,7 @@ jest.spyOn(mockedTfcApi, "getExistingVars").mockImplementation( () => {
             value: "val1"
         }
     });
-});
+}
 
 let mockExec = jest.fn( (cmd: string): Buffer => {
     if (cmd.indexOf("init") >= 0) {
@@ -41,7 +47,6 @@ let mockExec = jest.fn( (cmd: string): Buffer => {
         return new Buffer("succeeded");
     }
 });
-let mockedTfcCli = new TerraformCli(mockedTfcApi, mockExec);
 
 let mockOctokit = {
     rest: {
@@ -86,103 +91,207 @@ let mockedGithubHelper = new GithubHelper(mockOctokit, "unit_test_owner", "unit_
 
 beforeEach(() => {
     //jest.resetAllMocks();
+});
+
+describe('[Terraform Cloud]', () => {
+    let mockedTfcApi = new TerraformCloudApi("unit_test", "test_org", "test_workspace", undefined, mockFetch);
+    jest.spyOn(mockedTfcApi, "getExistingVars").mockImplementation(mockGetExistingVars);
+
+    let mockedTfcCli = new TerraformCli(mockedTfcApi, mockExec);
+
+    test('handle /help', async () => {
+        // Arrange
+        const prInfo: PullRequestInfo = {
+            branch: "",
+            sha1: ""
+        }
+        const command = "/help"
+        const commentId = 534
+
+        // Act
+        await handleSlashCommand(
+            mockedTfcApi,
+            mockedTfcCli,
+            mockedGithubHelper,
+            prInfo,
+            commentId,
+            command
+        );
+
+        // Assert
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls.length).toBe(2);
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[0][0].content).toBe("eyes");
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[0][0].comment_id).toBe(commentId);
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[1][0].content).toBe("rocket");
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[1][0].comment_id).toBe(commentId);
+        expect(mockOctokit.rest.issues.createComment.mock.calls.length).toBe(1);
+        expect(mockOctokit.rest.issues.createComment.mock.calls[0][0].body).toContain(HELP_TEXT);
+        expect(mockExec.mock.calls[0][0]).toContain("terraform init")
+    });
+
+    test('handle /deploy', async () => {
+        // Arrange
+        const prInfo: PullRequestInfo = {
+            branch: "test-branch",
+            sha1: "abc1234"
+        }
+        const command = "/deploy"
+        const commentId = 534
+
+        // Act
+        await handleSlashCommand(
+            mockedTfcApi,
+            mockedTfcCli,
+            mockedGithubHelper,
+            prInfo,
+            commentId,
+            command
+        );
+
+        // Assert
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls.length).toBe(2);
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[0][0].content).toBe("eyes");
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[0][0].comment_id).toBe(commentId);
+
+        expect(mockExec.mock.calls[0][0]).toContain("terraform init")
+        expect(mockExec.mock.calls[1][0]).toContain("terraform apply")
+
+        expect(mockOctokit.rest.issues.createComment.mock.calls.length).toBe(1);
+        expect(mockOctokit.rest.issues.createComment.mock.calls[0][0].body).toContain(":::environment created:::");
+
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[1][0].content).toBe("rocket");
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[1][0].comment_id).toBe(commentId);
+    });
+
+    test('handle /destroy', async () => {
+        // Arrange
+        const prInfo: PullRequestInfo = {
+            branch: "test-branch",
+            sha1: "abc1234"
+        }
+        const command = "/destroy"
+        const commentId = 534
+
+        // Act
+        await handleSlashCommand(
+            mockedTfcApi,
+            mockedTfcCli,
+            mockedGithubHelper,
+            prInfo,
+            commentId,
+            command
+        );
+
+        // Assert
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls.length).toBe(2);
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[0][0].content).toBe("eyes");
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[0][0].comment_id).toBe(commentId);
+
+        expect(mockExec.mock.calls[0][0]).toContain("terraform init");
+        expect(mockExec.mock.calls[1][0]).toContain("terraform destroy");
+        expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
+
+        expect(mockOctokit.rest.issues.createComment.mock.calls.length).toBe(1);
+        expect(mockOctokit.rest.issues.createComment.mock.calls[0][0].body).toContain("deleted");
+
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[1][0].content).toBe("rocket");
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[1][0].comment_id).toBe(commentId);
+    });
+});
+
+describe('Terraform S3', () => {
+    let existingValue = {
+        "var1":  {
+            id: "id1",
+            name: "var1",
+            value: "val1"
+        }
+    };
+    const stream = new Readable();
+    stream.push(JSON.stringify(existingValue));
+    stream.push(null); // end of stream
+
+    const s3Mock =  mockClient(S3Client);
+    s3Mock.on(GetObjectCommand).resolves({Body: sdkStreamMixin(stream)});
+
+    let mockedS3Client = new S3Client({})
+
+    let mockedTfS3Api = new TerraformS3Api("test_workspace", "test-s3-bucket", "test-dynamo-table")
+    Object.defineProperty(mockedTfS3Api, 's3Client', { value: mockedS3Client })
+    // jest.spyOn(mockedTfS3Api, 's3Client', 'get').mockReturnValue(mockedS3Client)
+
+    let mockedTerraformCli = new TerraformCli(mockedTfS3Api, mockExec);
+
+    test('handle /deploy', async () => {
+        // Arrange
+        const prInfo: PullRequestInfo = {
+            branch: "test-branch",
+            sha1: "abc1234"
+        }
+        const command = "/deploy"
+        const commentId = 534
+
+        // Act
+        await handleSlashCommand(
+            mockedTfS3Api,
+            mockedTerraformCli,
+            mockedGithubHelper,
+            prInfo,
+            commentId,
+            command
+        );
+
+        // Assert
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls.length).toBe(2);
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[0][0].content).toBe("eyes");
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[0][0].comment_id).toBe(commentId);
+
+        expect(mockExec.mock.calls[0][0]).toContain("terraform init")
+        expect(mockExec.mock.calls[1][0]).toContain("terraform apply")
+
+        expect(mockOctokit.rest.issues.createComment.mock.calls.length).toBe(1);
+        expect(mockOctokit.rest.issues.createComment.mock.calls[0][0].body).toContain(":::environment created:::");
+
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[1][0].content).toBe("rocket");
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[1][0].comment_id).toBe(commentId);
+
+        expect(s3Mock.commandCalls(GetObjectCommand).length).toBeGreaterThan(0)
+        expect(s3Mock.commandCalls(PutObjectCommand).length).toBeGreaterThan(0)
+    });
+
+    test('handle /destroy', async () => {
+        // Arrange
+        const prInfo: PullRequestInfo = {
+            branch: "test-branch",
+            sha1: "abc1234"
+        }
+        const command = "/destroy"
+        const commentId = 534
+
+        // Act
+        await handleSlashCommand(
+            mockedTfS3Api,
+            mockedTerraformCli,
+            mockedGithubHelper,
+            prInfo,
+            commentId,
+            command
+        );
+
+        // Assert
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls.length).toBe(2);
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[0][0].content).toBe("eyes");
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[0][0].comment_id).toBe(commentId);
+
+        expect(mockExec.mock.calls[0][0]).toContain("terraform init");
+        expect(mockExec.mock.calls[1][0]).toContain("terraform destroy");
+        
+        expect(s3Mock.commandCalls(DeleteObjectCommand).length).toBe(2);
+
+        expect(mockOctokit.rest.issues.createComment.mock.calls.length).toBe(1);
+        expect(mockOctokit.rest.issues.createComment.mock.calls[0][0].body).toContain("deleted");
+
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[1][0].content).toBe("rocket");
+        expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[1][0].comment_id).toBe(commentId);
+    });
 })
-
-test('handle /help', async () => {
-    // Arrange
-    const prInfo: PullRequestInfo = {
-        branch: "",
-        sha1: ""
-    }
-    const command = "/help"
-    const commentId = 534
-
-    // Act
-    await handleSlashCommand(
-        mockedTfcApi,
-        mockedTfcCli,
-        mockedGithubHelper,
-        prInfo,
-        commentId,
-        command
-    );
-
-    // Assert
-    expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls.length).toBe(2);
-    expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[0][0].content).toBe("eyes");
-    expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[0][0].comment_id).toBe(commentId);
-    expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[1][0].content).toBe("rocket");
-    expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[1][0].comment_id).toBe(commentId);
-    expect(mockOctokit.rest.issues.createComment.mock.calls.length).toBe(1);
-    expect(mockOctokit.rest.issues.createComment.mock.calls[0][0].body).toContain(HELP_TEXT);
-    expect(mockExec.mock.calls[0][0]).toContain("terraform init")
-});
-
-test('handle /deploy', async () => {
-    // Arrange
-    const prInfo: PullRequestInfo = {
-        branch: "test-branch",
-        sha1: "abc1234"
-    }
-    const command = "/deploy"
-    const commentId = 534
-
-    // Act
-    await handleSlashCommand(
-        mockedTfcApi,
-        mockedTfcCli,
-        mockedGithubHelper,
-        prInfo,
-        commentId,
-        command
-    );
-
-    // Assert
-    expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls.length).toBe(2);
-    expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[0][0].content).toBe("eyes");
-    expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[0][0].comment_id).toBe(commentId);
-
-    expect(mockExec.mock.calls[0][0]).toContain("terraform init")
-    expect(mockExec.mock.calls[1][0]).toContain("terraform apply")
-
-    expect(mockOctokit.rest.issues.createComment.mock.calls.length).toBe(1);
-    expect(mockOctokit.rest.issues.createComment.mock.calls[0][0].body).toContain(":::environment created:::");
-
-    expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[1][0].content).toBe("rocket");
-    expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[1][0].comment_id).toBe(commentId);
-});
-
-test('handle /destroy', async () => {
-    // Arrange
-    const prInfo: PullRequestInfo = {
-        branch: "test-branch",
-        sha1: "abc1234"
-    }
-    const command = "/destroy"
-    const commentId = 534
-
-    // Act
-    await handleSlashCommand(
-        mockedTfcApi,
-        mockedTfcCli,
-        mockedGithubHelper,
-        prInfo,
-        commentId,
-        command
-    );
-
-    // Assert
-    expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls.length).toBe(2);
-    expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[0][0].content).toBe("eyes");
-    expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[0][0].comment_id).toBe(commentId);
-
-    expect(mockExec.mock.calls[0][0]).toContain("terraform init");
-    expect(mockExec.mock.calls[1][0]).toContain("terraform destroy");
-    expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
-
-    expect(mockOctokit.rest.issues.createComment.mock.calls.length).toBe(1);
-    expect(mockOctokit.rest.issues.createComment.mock.calls[0][0].body).toContain("deleted");
-
-    expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[1][0].content).toBe("rocket");
-    expect(mockOctokit.rest.reactions.createForIssueComment.mock.calls[1][0].comment_id).toBe(commentId);
-});
