@@ -6,11 +6,10 @@ import {GithubHelper, PullRequestInfo} from "../src/gh_helper";
 import {HELP_TEXT} from "../src/command_help";
 import exp from "constants";
 import { TerraformS3Api } from "../src/s3_backend_api";
-import { mockClient, AwsClientStub } from "aws-sdk-client-mock";
+import { mockClient } from "aws-sdk-client-mock";
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import {Readable} from 'stream';
-import {createReadStream} from 'fs';
-import {sdkStreamMixin} from '@smithy/util-stream';
+import { Readable } from 'stream';
+import { sdkStreamMixin } from '@smithy/util-stream';
 
 let mockFetch = jest.fn( (url, opts): Promise<any> => {
     return Promise.resolve({
@@ -218,7 +217,6 @@ describe('Terraform S3', () => {
 
     let mockedTfS3Api = new TerraformS3Api("test_workspace", "test-s3-bucket", "test-dynamo-table")
     Object.defineProperty(mockedTfS3Api, 's3Client', { value: mockedS3Client })
-    // jest.spyOn(mockedTfS3Api, 's3Client', 'get').mockReturnValue(mockedS3Client)
 
     let mockedTerraformCli = new TerraformCli(mockedTfS3Api, mockExec);
 
