@@ -128,7 +128,8 @@ export class TerraformS3Api implements TerraformBackend {
 
     private get tfvars(): TFVars {
         const reducer = (acc, existingVar: ExistingVar) => {
-            acc[existingVar.name] = existingVar.value
+            acc[existingVar.name] = existingVar.value;
+            return acc;
         }
         return Object.values(this.existingVars).reduce(reducer, {});
     }
