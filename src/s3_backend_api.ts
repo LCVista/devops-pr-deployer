@@ -77,7 +77,7 @@ export class TerraformS3Api implements TerraformBackend {
             return true;
         } 
         console.log(`Setting variable key='${name}' value='${value}'`);
-        this.updateExistingVars(name, value);
+        await this.updateExistingVars(name, value);
 
         return true;
     }
@@ -127,14 +127,9 @@ export class TerraformS3Api implements TerraformBackend {
         }
         console.log("prepared put command")
         console.log(inputs);
-        try {
-            const resp = await this.s3Client.send(new PutObjectCommand(inputs));
-            console.log(`response: write to s3://${this.s3Bucket}/${this.tfVarsS3Key}`)
-            console.log(resp);
-        } catch (err) {
-            console.log('s3 upload failed')
-            console.log(err)
-        }
+        const resp = await this.s3Client.send(new PutObjectCommand(inputs));
+        console.log(`response: write to s3://${this.s3Bucket}/${this.tfVarsS3Key}`)
+        console.log(resp);
 
         return true;
     }
