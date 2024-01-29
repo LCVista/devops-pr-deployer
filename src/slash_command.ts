@@ -82,9 +82,9 @@ export async function handleSlashCommand(
         
         console.log('[DEBUG] skipped terraform apply')
         console.log(`[DEBUG] TFVARS_FILENAME (${TFVARS_FILENAME}):`);
-        console.log(fs.readFileSync(TFVARS_FILENAME));
+        console.log(fs.readFileSync(TFVARS_FILENAME).toString());
         console.log(`[DEBUG] BACKEND_CONFIG_FILENAME (${BACKEND_CONFIG_FILE})`)
-        console.log(fs.readFileSync(BACKEND_CONFIG_FILE));
+        console.log(fs.readFileSync(BACKEND_CONFIG_FILE).toString());
 
         let previewUrl = tfcCli.tfOutputOneVariable("preview_url");
         console.log(`preview_url=${previewUrl}`);

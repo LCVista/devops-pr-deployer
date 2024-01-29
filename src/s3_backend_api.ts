@@ -120,13 +120,14 @@ export class TerraformS3Api implements TerraformBackend {
         fs.writeFileSync(TFVARS_FILENAME, tfvarsJson)
         console.log(`wrote to ${TFVARS_FILENAME}`);
 
-        // write to tfvars file in s3
-        const s3Cmd = new PutObjectCommand({
+        const inputs = {
             "Bucket": this.s3Bucket,
             "Key": this.tfVarsS3Key,
             "Body": tfvarsJson
-        })
-        await this.s3Client.send(s3Cmd);
+        }
+        console.log("prepared put command")
+        console.log(inputs);
+        await this.s3Client.send(new PutObjectCommand(inputs));
         console.log(`wrote to s3://${this.s3Bucket}/${this.tfVarsS3Key}`)
 
         return true;
