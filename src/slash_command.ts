@@ -80,7 +80,6 @@ export async function handleSlashCommand(
         }
 
         
-        console.log('[DEBUG] skipped terraform apply')
         console.log(`[DEBUG] TFVARS_FILENAME (${TFVARS_FILENAME}):`);
         console.log(fs.readFileSync(TFVARS_FILENAME).toString());
         console.log(`[DEBUG] BACKEND_CONFIG_FILENAME (${BACKEND_CONFIG_FILE})`)
@@ -89,20 +88,19 @@ export async function handleSlashCommand(
         let previewUrl = tfcCli.tfOutputOneVariable("preview_url");
         console.log(`preview_url=${previewUrl}`);
 
-        throw Error("DEBUG STOP! (this is good!)")
 
         // apply the plan
-        // tfcCli.tfApply()
+        tfcCli.tfApply()
 
-        // let output = tfcCli.tfOutput();
-        // console.log(output);
+        let output = tfcCli.tfOutput();
+        console.log(output);
 
-        // await githubHelper.addComment(`Environment is ready at [${previewUrl}](${previewUrl})` +
-        //     "\n\n" +
-        //     "```" +
-        //     output + "```");
-        // await githubHelper.addReaction(commentId, "rocket");
-        // return;
+        await githubHelper.addComment(`Environment is ready at [${previewUrl}](${previewUrl})` +
+            "\n\n" +
+            "```" +
+            output + "```");
+        await githubHelper.addReaction(commentId, "rocket");
+        return;
 
     } else {
         console.debug(
