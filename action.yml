@@ -78,6 +78,8 @@ runs:
         aws_secret_key: ${{ inputs.aws_secret_key }}
         s3_bucket: ${{ inputs.s3_bucket }}
         s3_dynamodb_table: ${{ inputs.s3_dynamodb_table }}
+        # Copied this from terraform cloud. 
+        # TODO: maybe pull this out via TFC API in an earlier step?
         TF_VAR_db_snapshot_identifier_dev: prod-db-01-lambda-snapshot-2024-01-17-encrypted
 
 branding:
