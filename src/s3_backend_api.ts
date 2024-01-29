@@ -112,7 +112,7 @@ export class TerraformS3Api implements TerraformBackend {
         console.log('S3BackendApi: updateExistingVars')
         this.existingVars[name] = {name, value, id: ""} as ExistingVar;
         console.log(this.existingVars)
-        const tfvarsJson = JSON.stringify(this.tfvars)
+        const tfvarsJson = JSON.stringify(this.tfvars, null, "  ") // pretty print
         console.log('tfvars json:');
         console.log(tfvarsJson);
         
