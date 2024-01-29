@@ -112,7 +112,7 @@ export class TerraformS3Api implements TerraformBackend {
         console.log('S3BackendApi: updateExistingVars')
         this.existingVars[name] = {name, value, id: ""} as ExistingVar;
         console.log(this.existingVars)
-        const tfvarsJson = JSON.stringify(this.tfvars, null, "  ") // pretty print
+        const tfvarsJson = JSON.stringify(this.tfvars)
         console.log('tfvars json:');
         console.log(tfvarsJson);
         
@@ -127,8 +127,14 @@ export class TerraformS3Api implements TerraformBackend {
         }
         console.log("prepared put command")
         console.log(inputs);
-        await this.s3Client.send(new PutObjectCommand(inputs));
-        console.log(`wrote to s3://${this.s3Bucket}/${this.tfVarsS3Key}`)
+        try {
+            const resp = await this.s3Client.send(new PutObjectCommand(inputs));
+            console.log(`response: write to s3://${this.s3Bucket}/${this.tfVarsS3Key}`)
+            console.log(resp);
+        } catch (err) {
+            console.log('s3 upload failed')
+            console.log(err)
+        }
 
         return true;
     }
