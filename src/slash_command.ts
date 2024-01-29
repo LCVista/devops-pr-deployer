@@ -89,7 +89,7 @@ export async function handleSlashCommand(
         let previewUrl = tfcCli.tfOutputOneVariable("preview_url");
         console.log(`preview_url=${previewUrl}`);
 
-        throw "DEBUG STOP! (this is good!)"
+        throw Error("DEBUG STOP! (this is good!)")
 
         // apply the plan
         // tfcCli.tfApply()
