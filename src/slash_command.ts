@@ -93,18 +93,19 @@ export async function handleSlashCommand(
         console.log(`preview_url=${previewUrl}`);
 
         throw "DEBUG STOP! (this is good!)"
-        // // apply the plan
-        tfcCli.tfApply()
 
-        let output = tfcCli.tfOutput();
-        console.log(output);
+        // apply the plan
+        // tfcCli.tfApply()
 
-        await githubHelper.addComment(`Environment is ready at [${previewUrl}](${previewUrl})` +
-            "\n\n" +
-            "```" +
-            output + "```");
-        await githubHelper.addReaction(commentId, "rocket");
-        return;
+        // let output = tfcCli.tfOutput();
+        // console.log(output);
+
+        // await githubHelper.addComment(`Environment is ready at [${previewUrl}](${previewUrl})` +
+        //     "\n\n" +
+        //     "```" +
+        //     output + "```");
+        // await githubHelper.addReaction(commentId, "rocket");
+        // return;
 
     } else {
         console.debug(
