@@ -86,9 +86,6 @@ export async function handleSlashCommand(
         console.log(`[DEBUG] BACKEND_CONFIG_FILENAME (${BACKEND_CONFIG_FILE})`)
         console.log(fs.readFileSync(BACKEND_CONFIG_FILE));
 
-        console.log(`[DEBUG] ${BACKEND_CONFIG_FILE} :`)
-        console.log(fs.readFileSync('pr-env.tf'));
-
         let previewUrl = tfcCli.tfOutputOneVariable("preview_url");
         console.log(`preview_url=${previewUrl}`);
 
