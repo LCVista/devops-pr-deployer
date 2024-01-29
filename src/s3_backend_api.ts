@@ -3,8 +3,8 @@ import { ExistingVars, TerraformBackend, TFVars } from "./types";
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, NoSuchKey } from "@aws-sdk/client-s3";
 import { ExistingVar } from "./tfc_api";
 
-const TFVARS_FILENAME = 'terraform.tfvars.json';
-const TFSTATE_FILENAME = 'terraform.tfstate';
+export const TFVARS_FILENAME = 'terraform.tfvars.json';
+export const TFSTATE_FILENAME = 'terraform.tfstate';
 
 export class TerraformS3Api implements TerraformBackend {
     public readonly workspaceName: string;
@@ -71,12 +71,12 @@ export class TerraformS3Api implements TerraformBackend {
     }
 
     public async setVariable(existingValue, name, value): Promise<boolean> {
+        console.log('S3BackendApi: setVariable')
         if (existingValue && existingValue.value === value) {
             console.log(`Skipping key=${name} because value=${value} already present=${existingValue.value}`);
             return true;
         } 
         console.log(`Setting variable key='${name}' value='${value}'`);
-
         this.updateExistingVars(name, value);
 
         return true;
@@ -109,19 +109,25 @@ export class TerraformS3Api implements TerraformBackend {
     }
 
     private async updateExistingVars(name: string, value): Promise<boolean> {
+        console.log('S3BackendApi: updateExistingVars')
         this.existingVars[name] = {name, value, id: ""} as ExistingVar;
-        const tfvars = JSON.stringify(this.tfvars)
+        console.log(this.existingVars)
+        const tfvarsJson = JSON.stringify(this.tfvars)
+        console.log('tfvars json:');
+        console.log(tfvarsJson);
         
         // write to local tfvars file
-        fs.writeFileSync(TFVARS_FILENAME, tfvars)
+        fs.writeFileSync(TFVARS_FILENAME, tfvarsJson)
+        console.log(`wrote to ${TFVARS_FILENAME}`);
 
         // write to tfvars file in s3
         const s3Cmd = new PutObjectCommand({
             "Bucket": this.s3Bucket,
             "Key": this.tfVarsS3Key,
-            "Body": tfvars
+            "Body": tfvarsJson
         })
         await this.s3Client.send(s3Cmd);
+        console.log(`wrote to s3://${this.s3Bucket}/${this.tfVarsS3Key}`)
 
         return true;
     }

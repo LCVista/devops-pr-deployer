@@ -1,8 +1,11 @@
+import fs from "fs";
 import {HELP_TEXT} from "./command_help";
 import {TerraformCli} from "./tfc_cli";
 import {GithubHelper, PullRequestInfo} from "./gh_helper";
 import {handlePrClosed} from "./pr_closed";
 import { TerraformBackend } from "./types";
+import { TFVARS_FILENAME } from "./s3_backend_api";
+import { BACKEND_CONFIG_FILE } from "./tfc_cli";
 
 export async function handleSlashCommand(
     tfcApi: TerraformBackend,
@@ -76,11 +79,22 @@ export async function handleSlashCommand(
             throw new Error ("Not all variables were set");
         }
 
-        // apply the plan
-        tfcCli.tfApply()
+        
+        console.log('[DEBUG] skipped terraform apply')
+        console.log(`[DEBUG] TFVARS_FILENAME (${TFVARS_FILENAME}):`);
+        console.log(fs.readFileSync(TFVARS_FILENAME));
+        console.log(`[DEBUG] BACKEND_CONFIG_FILENAME (${BACKEND_CONFIG_FILE})`)
+        console.log(fs.readFileSync(BACKEND_CONFIG_FILE));
+
+        console.log(`[DEBUG] ${BACKEND_CONFIG_FILE} :`)
+        console.log(fs.readFileSync('pr-env.tf'));
 
         let previewUrl = tfcCli.tfOutputOneVariable("preview_url");
         console.log(`preview_url=${previewUrl}`);
+
+        throw "DEBUG STOP! (this is good!)"
+        // // apply the plan
+        tfcCli.tfApply()
 
         let output = tfcCli.tfOutput();
         console.log(output);

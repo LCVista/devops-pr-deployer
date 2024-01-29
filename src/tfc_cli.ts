@@ -2,6 +2,8 @@ import fs from "fs";
 import { TerraformBackend } from "./types";
 const { execSync } = require("child_process");
 
+export const BACKEND_CONFIG_FILE = 'terraform.tf';
+
 export class TerraformCli {
     private readonly tfBackendApi: TerraformBackend;
     private readonly exec: (string) => Buffer;
@@ -42,7 +44,7 @@ export class TerraformCli {
 
     public tfInit(): string {
         fs.writeFileSync(
-            'terraform.tf',
+            BACKEND_CONFIG_FILE,
             this.tfBackendApi.configBlock(),
             'utf-8'
         );
