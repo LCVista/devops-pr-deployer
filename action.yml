@@ -35,11 +35,13 @@ runs:
     - uses: actions/setup-node@v3
       with:
         node-version: 18
-    - name: setup yarn
+    - name: build action scripts
       run: |
+        cd $GITHUB_ACTION_PATH
         corepack enable
         yarn set version classic
         yarn install
+        yarn build
       shell: bash
     # build here just before running to 
     - name: yarn build
