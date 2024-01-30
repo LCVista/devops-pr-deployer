@@ -7,7 +7,7 @@ import {TerraformCloudApi} from "./tfc_api";
 import {TerraformCli} from "./tfc_cli";
 import {getIssueNumber, GithubHelper} from "./gh_helper";
 import { TerraformBackend } from './types';
-import { existingVarsToTfVars, TerraformS3Api, TFVARS_FILENAME } from './s3_backend_api';
+import { TerraformS3Api, TFVARS_FILENAME, writeTfvarsFile } from './s3_backend_api';
 import { error } from 'console';
 
 const github_token = core.getInput('gh_comment_token') || process.env['gh_comment_token'];
@@ -105,9 +105,7 @@ async function run(): Promise<void> {
             // backend can consume it. To avoid cli warnings don't write an empty file.
             const existingVars = await tfcApi.getExistingVars();
             if (Object.keys(existingVars).length > 0) {
-                const tfvarsJson = JSON.stringify(existingVarsToTfVars(existingVars))
-                fs.writeFileSync(TFVARS_FILENAME, tfvarsJson);
-                console.log(`wrote to ${TFVARS_FILENAME}:\n${tfvarsJson}`);
+                writeTfvarsFile(existingVars)
             }
         } else {
             tfcApi = new TerraformCloudApi(

@@ -112,30 +112,34 @@ export class TerraformS3Api implements TerraformBackend {
     private async updateExistingVars(name: string, value): Promise<boolean> {
         console.log('S3BackendApi: updateExistingVars')
         this.existingVars[name] = {name, value, id: ""}
-        const tfvars = existingVarsToTfVars(this.existingVars)
-        const tfvarsJson = JSON.stringify(tfvars)
-        
-        // write to local tfvars file
-        fs.writeFileSync(TFVARS_FILENAME, tfvarsJson)
-        console.log(`wrote to ${TFVARS_FILENAME}`);
 
         const inputs = {
             "Bucket": this.s3Bucket,
             "Key": this.tfVarsS3Key,
-            "Body": tfvarsJson
+            "Body": JSON.stringify(this.existingVars)
         }
         const resp = await this.s3Client.send(new PutObjectCommand(inputs));
-        console.log(`wrote to s3://${this.s3Bucket}/${this.tfVarsS3Key}`)
+        console.log(`wrote existingVars to s3://${this.s3Bucket}/${this.tfVarsS3Key}`)
+
+        
+        // update local tfvars.json
+        writeTfvarsFile(this.existingVars)
 
         return true;
     }
 }
 
-// convert an ExistingVars structure into a TFVars structure
-export function existingVarsToTfVars(existingVars: ExistingVars): TFVars {
+export function writeTfvarsFile(existingVars: ExistingVars): boolean {
+    // convert from "ExistingVar(s)" format to tfvars.json format
     const reducer = (acc, existingVar: ExistingVar) => {
         acc[existingVar.name] = existingVar.value;
         return acc;
     }
-    return Object.values(existingVars).reduce(reducer, {});
+    const tfvars = Object.values(existingVars).reduce(reducer, {});
+    const tfvarsJson = JSON.stringify(tfvars)
+
+    fs.writeFileSync(TFVARS_FILENAME, tfvarsJson)
+    console.log(`wrote to ${TFVARS_FILENAME}:\n${tfvarsJson}`);
+
+    return true
 }
