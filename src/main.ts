@@ -1,12 +1,13 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
+import fs from "fs";
 import {handleSlashCommand} from "./slash_command";
 import {handlePrClosed} from "./pr_closed";
 import {TerraformCloudApi} from "./tfc_api";
 import {TerraformCli} from "./tfc_cli";
 import {getIssueNumber, GithubHelper} from "./gh_helper";
 import { TerraformBackend } from './types';
-import { TerraformS3Api } from './s3_backend_api';
+import { TerraformS3Api, TFVARS_FILENAME } from './s3_backend_api';
 import { error } from 'console';
 
 const github_token = core.getInput('gh_comment_token') || process.env['gh_comment_token'];
@@ -99,8 +100,17 @@ async function run(): Promise<void> {
                 s3_bucket || "", 
                 s3_dynamodb_table || ""
             )
+
+            // pull existing variable state and write it to the fs so that the s3
+            // backend can consume it when executing tf cli commands locally
+            const tfvars = await tfcApi.getExistingVars();
+            fs.writeFileSync(TFVARS_FILENAME, JSON.stringify(tfvars))
         } else {
-            tfcApi = new TerraformCloudApi(tfc_api_token, tfc_org, workspaceName);
+            tfcApi = new TerraformCloudApi(
+                tfc_api_token || "", 
+                tfc_org || "", 
+                workspaceName
+            );
         }
 
         let tfcCli = new TerraformCli(tfcApi);
