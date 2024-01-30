@@ -47,7 +47,7 @@ export class TerraformS3Api implements TerraformBackend {
             const resp = await this.s3Client.send(s3cmd);
             const respBody = (await resp.Body?.transformToString()) || "{}";
             this.existingVars  = JSON.parse(respBody)
-            console.log(`recieved remoteVars: ${JSON.stringify(remoteVars)}`)
+            console.log(`recieved remoteVars: ${JSON.stringify(respBody)}`)
 
         } catch (err) {
             if (err instanceof NoSuchKey) { 
