@@ -4,7 +4,7 @@ import {TerraformCli} from "./tfc_cli";
 import {GithubHelper, PullRequestInfo} from "./gh_helper";
 import {handlePrClosed} from "./pr_closed";
 import { TerraformBackend } from "./types";
-import { TFVARS_FILENAME } from "./s3_backend_api";
+import { TFVARS_FILENAME, TerraformS3Api } from "./s3_backend_api";
 import { BACKEND_CONFIG_FILE } from "./tfc_cli";
 
 export async function handleSlashCommand(
@@ -79,18 +79,28 @@ export async function handleSlashCommand(
             throw new Error ("Not all variables were set");
         }
 
-        
-        console.log(`[DEBUG] TFVARS_FILENAME (${TFVARS_FILENAME}):`);
-        console.log(fs.readFileSync(TFVARS_FILENAME).toString());
-        console.log(`[DEBUG] BACKEND_CONFIG_FILENAME (${BACKEND_CONFIG_FILE})`)
-        console.log(fs.readFileSync(BACKEND_CONFIG_FILE).toString());
-
-        let previewUrl = tfcCli.tfOutputOneVariable("preview_url");
-        console.log(`preview_url=${previewUrl}`);
-
+        try {
+            console.log(`[DEBUG] TFVARS_FILENAME (${TFVARS_FILENAME}):`);
+            console.log(fs.readFileSync(TFVARS_FILENAME).toString());
+        } catch {
+            if (tfcApi instanceof TerraformS3Api) {
+                console.log(`[WARNING] TFVARS_FILENAME (${TFVARS_FILENAME}) not found.`);
+            }
+        }
+        try {
+            console.log(`[DEBUG] BACKEND_CONFIG_FILENAME (${BACKEND_CONFIG_FILE})`)
+            console.log(fs.readFileSync(BACKEND_CONFIG_FILE).toString());
+        } catch {
+            if (tfcApi instanceof TerraformS3Api) {
+                console.log(`[WARNING] BACKEND_CONFIG_FILENAME (${BACKEND_CONFIG_FILE}) not found.`)
+            }
+        }
 
         // apply the plan
         tfcCli.tfApply()
+
+        let previewUrl = tfcCli.tfOutputOneVariable("preview_url");
+        console.log(`preview_url=${previewUrl}`);
 
         let output = tfcCli.tfOutput();
         console.log(output);
