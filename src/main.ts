@@ -104,7 +104,10 @@ async function run(): Promise<void> {
             // pull existing variable state and write it to the fs so that the s3
             // backend can consume it when executing tf cli commands locally
             const tfvars = await tfcApi.getExistingVars();
-            fs.writeFileSync(TFVARS_FILENAME, JSON.stringify(tfvars))
+            if (Object.keys(tfvars).length > 0) {
+                // terraform cli throws a warning if the tfvars file is empty
+                fs.writeFileSync(TFVARS_FILENAME, JSON.stringify(tfvars))
+            }
         } else {
             tfcApi = new TerraformCloudApi(
                 tfc_api_token || "", 
