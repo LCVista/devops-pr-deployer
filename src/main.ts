@@ -101,11 +101,10 @@ async function run(): Promise<void> {
                 s3_dynamodb_table || ""
             )
 
-            // pull existing variable state and write it to the fs so that the s3
-            // backend can consume it when executing tf cli commands locally
+            // pull existing variable state and write it to the fs so that the tf cli/s3 
+            // backend can consume it. To avoid cli warnings don't write an empty file.
             const tfvars = await tfcApi.getExistingVars();
             if (Object.keys(tfvars).length > 0) {
-                // terraform cli throws a warning if the tfvars file is empty
                 fs.writeFileSync(TFVARS_FILENAME, JSON.stringify(tfvars))
             }
         } else {
