@@ -46,19 +46,9 @@ export class TerraformS3Api implements TerraformBackend {
         try {
             const resp = await this.s3Client.send(s3cmd);
             const respBody = (await resp.Body?.transformToString()) || "{}";
-            const remoteVars = JSON.parse(respBody)
+            this.existingVars  = JSON.parse(respBody)
             console.log(`recieved remoteVars: ${JSON.stringify(remoteVars)}`)
 
-            const reducer = (acc, key) => {
-                acc[key] = {
-                    id: "",
-                    name: key,
-                    value: remoteVars[key],
-                };
-
-                return acc;
-            }
-            this.existingVars = Object.keys(remoteVars).reduce(reducer, {});
         } catch (err) {
             if (err instanceof NoSuchKey) { 
                 console.log('saved variable state not found. returning {}')

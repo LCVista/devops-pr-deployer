@@ -10,11 +10,11 @@ export async function handlePrClosed(
     try {
         let outputInit = tfcCli.tfInit();
         console.log(outputInit);
-        let outputDestroy = tfcCli.tfDestroy();
-        console.log(outputDestroy);
     } catch (e: any) {
         console.log('Workspace may not have been initialized', e);
     }
+    let outputDestroy = tfcCli.tfDestroy();
+    console.log(outputDestroy);
 
     let result = await tfcApi.deleteWorkspace();
     if (result) {
