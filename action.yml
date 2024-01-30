@@ -35,6 +35,16 @@ runs:
     - uses: actions/setup-node@v3
       with:
         node-version: 18
+    - name: setup yarn
+      run: |
+        corepack enable
+        yarn set version classic
+        yarn install
+      shell: bash
+    # build here just before running to 
+    - name: yarn build
+      run: yarn build
+      shell: bash
     - id: refs
       name: resolve pr refs
       run: 'node $GITHUB_ACTION_PATH/dist/gh_sha_resolver.js'
