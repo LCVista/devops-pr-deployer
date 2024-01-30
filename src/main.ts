@@ -105,7 +105,9 @@ async function run(): Promise<void> {
             // backend can consume it. To avoid cli warnings don't write an empty file.
             const tfvars = await tfcApi.getExistingVars();
             if (Object.keys(tfvars).length > 0) {
+                const tfvarsJson = JSON.stringify(tfvars)
                 fs.writeFileSync(TFVARS_FILENAME, JSON.stringify(tfvars))
+                console.log(`wrote to ${TFVARS_FILENAME}:\n${tfvarsJson}`)
             }
         } else {
             tfcApi = new TerraformCloudApi(

@@ -61,6 +61,7 @@ export class TerraformS3Api implements TerraformBackend {
             this.existingVars = Object.keys(remoteVars).reduce(reducer, {});
         } catch (err) {
             if (err instanceof NoSuchKey) { 
+                console.log('saved variable state not found. returning {}')
                 return {};
             } else {
                 throw err
