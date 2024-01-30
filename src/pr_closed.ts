@@ -16,11 +16,11 @@ export async function handlePrClosed(
     let outputDestroy = tfcCli.tfDestroy();
     console.log(outputDestroy);
 
-    // let result = await tfcApi.deleteWorkspace();
-    // if (result) {
-    //     console.log (`Workspace ${tfcApi.workspaceName} was deleted`)
-    //     await ghHelper.addComment(`Workspace ${tfcApi.workspaceName} was deleted`);
-    // } else {
-    //     throw new Error(`Workspace ${tfcApi.workspaceName} NOT deleted`);
-    // }
+    let result = await tfcApi.deleteWorkspace();
+    if (result) {
+        console.log (`Workspace ${tfcApi.workspaceName} was deleted`)
+        await ghHelper.addComment(`Workspace ${tfcApi.workspaceName} was deleted`);
+    } else {
+        throw new Error(`Workspace ${tfcApi.workspaceName} NOT deleted`);
+    }
 }
