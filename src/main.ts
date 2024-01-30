@@ -106,8 +106,8 @@ async function run(): Promise<void> {
             const tfvars = await tfcApi.getExistingVars();
             if (Object.keys(tfvars).length > 0) {
                 const tfvarsJson = JSON.stringify(tfvars)
-                fs.writeFileSync(TFVARS_FILENAME, JSON.stringify(tfvars))
-                console.log(`wrote to ${TFVARS_FILENAME}:\n${tfvarsJson}`)
+                fs.writeFileSync(TFVARS_FILENAME, JSON.stringify(tfvars));
+                console.log(`wrote to ${TFVARS_FILENAME}:\n${tfvarsJson}`);
             }
         } else {
             tfcApi = new TerraformCloudApi(

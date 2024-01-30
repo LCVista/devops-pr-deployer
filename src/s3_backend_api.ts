@@ -114,8 +114,6 @@ export class TerraformS3Api implements TerraformBackend {
         this.existingVars[name] = {name, value, id: ""} as ExistingVar;
         console.log(this.existingVars)
         const tfvarsJson = JSON.stringify(this.tfvars)
-        console.log('tfvars json:');
-        console.log(tfvarsJson);
         
         // write to local tfvars file
         fs.writeFileSync(TFVARS_FILENAME, tfvarsJson)
@@ -126,11 +124,8 @@ export class TerraformS3Api implements TerraformBackend {
             "Key": this.tfVarsS3Key,
             "Body": tfvarsJson
         }
-        console.log("prepared put command")
-        console.log(inputs);
         const resp = await this.s3Client.send(new PutObjectCommand(inputs));
-        console.log(`response: write to s3://${this.s3Bucket}/${this.tfVarsS3Key}`)
-        console.log(resp);
+        console.log(`wrote to s3://${this.s3Bucket}/${this.tfVarsS3Key}`)
 
         return true;
     }
