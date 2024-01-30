@@ -43,10 +43,6 @@ runs:
         yarn install
         yarn build
       shell: bash
-    # build here just before running to 
-    - name: yarn build
-      run: yarn build
-      shell: bash
     - id: refs
       name: resolve pr refs
       run: 'node $GITHUB_ACTION_PATH/dist/gh_sha_resolver.js'
