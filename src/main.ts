@@ -83,7 +83,7 @@ async function run(): Promise<void> {
 
         let tfcApi: TerraformBackend;
         if (terraform_backend.toLowerCase() === "s3") {
-            tfcApi = new TerraformS3Api(
+            tfcApi = await TerraformS3Api.build(
                 workspaceName, 
                 s3_bucket || "", 
                 s3_dynamodb_table || ""

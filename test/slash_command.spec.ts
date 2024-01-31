@@ -11,6 +11,16 @@ import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } fro
 import { Readable } from 'stream';
 import { sdkStreamMixin } from '@smithy/util-stream';
 
+
+const existingVarsJson = JSON.stringify({
+    "var1":  {
+        id: "id1",
+        name: "var1",
+        value: "val1"
+    }
+});
+const s3Mock = mockClient(S3Client);
+
 let mockFetch = jest.fn( (url, opts): Promise<any> => {
     return Promise.resolve({
         ok: true,
@@ -89,7 +99,14 @@ let mockOctokit = {
 let mockedGithubHelper = new GithubHelper(mockOctokit, "unit_test_owner", "unit_test_repo", 1);
 
 beforeEach(() => {
-    //jest.resetAllMocks();
+    s3Mock.reset();
+
+    s3Mock.on(GetObjectCommand).callsFake((_input) => {
+        const stream = new Readable();
+        stream.push(existingVarsJson);
+        stream.push(null); // end of stream
+        return { Body: sdkStreamMixin(stream) };
+    });
 });
 
 describe('[Terraform Cloud]', () => {
@@ -199,28 +216,14 @@ describe('[Terraform Cloud]', () => {
 });
 
 describe('Terraform S3', () => {
-    let existingValue = {
-        "var1":  {
-            id: "id1",
-            name: "var1",
-            value: "val1"
-        }
-    };
-    const stream = new Readable();
-    stream.push(JSON.stringify(existingValue));
-    stream.push(null); // end of stream
-
-    const s3Mock =  mockClient(S3Client);
-    s3Mock.on(GetObjectCommand).resolves({Body: sdkStreamMixin(stream)});
-
-    let mockedS3Client = new S3Client({})
-
-    let mockedTfS3Api = new TerraformS3Api("test_workspace", "test-s3-bucket", "test-dynamo-table")
-    Object.defineProperty(mockedTfS3Api, 's3Client', { value: mockedS3Client })
-
-    let mockedTerraformCli = new TerraformCli(mockedTfS3Api, mockExec);
-
     test('handle /deploy', async () => {
+        let mockedTfS3Api = await TerraformS3Api.build(
+            "test_workspace",
+            "test-s3-bucket",
+            "test-dynamo-table"
+        )
+        let mockedTerraformCli = new TerraformCli(mockedTfS3Api, mockExec);
+
         // Arrange
         const prInfo: PullRequestInfo = {
             branch: "test-branch",
@@ -258,6 +261,13 @@ describe('Terraform S3', () => {
     });
 
     test('handle /destroy', async () => {
+        let mockedTfS3Api = await TerraformS3Api.build(
+            "test_workspace",
+            "test-s3-bucket",
+            "test-dynamo-table"
+        )
+        let mockedTerraformCli = new TerraformCli(mockedTfS3Api, mockExec);
+
         // Arrange
         const prInfo: PullRequestInfo = {
             branch: "test-branch",

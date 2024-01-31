@@ -2,6 +2,8 @@ import fs from "fs";
 import { ExistingVars, TerraformBackend, TFVars } from "./types";
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, NoSuchKey } from "@aws-sdk/client-s3";
 import { ExistingVar } from "./tfc_api";
+import { Readable } from "stream";
+import { ReadableStream } from "stream/web";
 
 export const TFVARS_FILENAME = 'terraform.tfvars.json';
 export const TFSTATE_FILENAME = 'terraform.tfstate';
@@ -16,13 +18,31 @@ export class TerraformS3Api implements TerraformBackend {
     constructor(
         workspaceName: string,
         s3Bucket: string,
-        dynamodbTable: string
+        dynamodbTable: string,
+        fromBuilder: boolean = false
     ) {
+        if (!fromBuilder) {
+            throw Error('use TerraformS3Api.build()')
+        }
+
         this.s3Bucket = s3Bucket;
         this.dynamodbTable = dynamodbTable;
         this.s3Client = new S3Client();
         this.workspaceName = workspaceName;
         this.existingVars = {};
+    }
+
+    // constructors can't be async, and we need to await getExistingVars at init time
+    static async build(
+        workspaceName: string,
+        s3Bucket: string,
+        dynamodbTable: string
+    ): Promise<TerraformS3Api> {
+        const api = new TerraformS3Api(workspaceName, s3Bucket, dynamodbTable, true)
+        // need to call this to hydrate the in-memory variable store
+        await api.getExistingVars();
+
+        return api;
     }
 
     public configBlock(): string {
@@ -45,10 +65,8 @@ export class TerraformS3Api implements TerraformBackend {
         })
         try {
             const resp = await this.s3Client.send(s3cmd);
-            const respBody = (await resp.Body?.transformToString()) || "{}";
-            this.existingVars  = JSON.parse(respBody)
-            console.log(`recieved remoteVars: ${JSON.stringify(respBody)}`)
-
+            const respBody = (await resp.Body?.transformToString()) || "{}"
+            this.existingVars = JSON.parse(respBody)
         } catch (err) {
             if (err instanceof NoSuchKey) { 
                 console.log('saved variable state not found. returning {}')
