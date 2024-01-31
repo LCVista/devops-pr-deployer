@@ -25,6 +25,9 @@ inputs:
     description: 's3 bucket for storing tfstate. required for S3 backend'
   s3_dynamodb_table:
     description: 'dynamodb table for tracking workspace locks. required for s3 backend'
+  yarn_build:
+    description: 'enable yarn build step. useful for development, but a little slow.'
+    default: false
 outputs:
   error-message:
     description: "Any errors that occur"
@@ -35,7 +38,8 @@ runs:
     - uses: actions/setup-node@v3
       with:
         node-version: 18
-    - name: build action scripts
+    - name: yarn_build
+      if: ${{ inputs.yarn_build == 'true' }}
       run: |
         cd $GITHUB_ACTION_PATH
         corepack enable
