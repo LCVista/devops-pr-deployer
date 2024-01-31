@@ -1,21 +1,18 @@
 import fs from "fs";
+import { TerraformBackend } from "./types";
 const { execSync } = require("child_process");
 
+export const BACKEND_CONFIG_FILE = 'terraform.tf';
+
 export class TerraformCli {
-    public readonly orgId: string;
-    public readonly workspaceName: string;
-    public readonly baseDomain: string;
+    private readonly tfBackendApi: TerraformBackend;
     private readonly exec: (string) => Buffer;
 
     constructor(
-        orgId: string,
-        workspaceName: string,
-        baseDomain: string | undefined = undefined,
+        tfBackendApi: TerraformBackend,
         exec: ((string) => Buffer) | undefined = undefined
     ) {
-        this.baseDomain = baseDomain ? baseDomain : "app.terraform.io";
-        this.orgId = orgId;
-        this.workspaceName = workspaceName;
+        this.tfBackendApi = tfBackendApi;
         this.exec = exec ? exec : execSync;
     }
 
@@ -46,18 +43,11 @@ export class TerraformCli {
     }
 
     public tfInit(): string {
-        // Because the workspace name is calculated per PR,
-        // this terraform cloud setting needs to be set before CLI commands can be called.
-        const TERRAFORM_HEADER = `terraform {
-  cloud {
-    hostname     = "${this.baseDomain}"
-    organization = "${this.orgId}"
-    workspaces {
-      name = "${this.workspaceName}"
-    }
-  }
-}`;
-        fs.writeFileSync('terraform.tf', TERRAFORM_HEADER, 'utf-8');
+        fs.writeFileSync(
+            BACKEND_CONFIG_FILE,
+            this.tfBackendApi.configBlock(),
+            'utf-8'
+        );
 
         return this.__exec('terraform init -no-color -input=false');
     }

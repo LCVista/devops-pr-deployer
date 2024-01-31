@@ -1,11 +1,14 @@
+import fs from "fs";
 import {HELP_TEXT} from "./command_help";
 import {TerraformCli} from "./tfc_cli";
-import {TerraformCloudApi} from "./tfc_api";
 import {GithubHelper, PullRequestInfo} from "./gh_helper";
 import {handlePrClosed} from "./pr_closed";
+import { TerraformBackend } from "./types";
+import { TFVARS_FILENAME, TerraformS3Api } from "./s3_backend_api";
+import { BACKEND_CONFIG_FILE } from "./tfc_cli";
 
 export async function handleSlashCommand(
-    tfcApi: TerraformCloudApi,
+    tfcApi: TerraformBackend,
     tfcCli: TerraformCli,
     githubHelper: GithubHelper,
     prInfo: PullRequestInfo,
@@ -40,16 +43,14 @@ export async function handleSlashCommand(
         tfcCli.tfInit();
 
         // handle input vars here
-        let workspaceId = await tfcApi.getWorkspaceId();
-        console.log(`workspaceId = ${workspaceId}`);
-        let existingVars = await tfcApi.getExistingVars(workspaceId);
+        let existingVars = await tfcApi.getExistingVars();
         console.log(`existingVars= ${existingVars}`);
 
         let env_vars = {};
         let allSet = true;
-        allSet &&= await tfcApi.setVariable(workspaceId, existingVars["git_branch"], "git_branch", prInfo.branch);
+        allSet &&= await tfcApi.setVariable(existingVars["git_branch"], "git_branch", prInfo.branch);
         env_vars['git_branch'] = prInfo.branch;
-        allSet &&= await tfcApi.setVariable(workspaceId,existingVars["git_sha1"], "git_sha1", prInfo.sha1);
+        allSet &&= await tfcApi.setVariable(existingVars["git_sha1"], "git_sha1", prInfo.sha1);
         env_vars['git_sha1'] = prInfo.sha1;
 
         for (let key in existingVars) {
@@ -65,22 +66,34 @@ export async function handleSlashCommand(
         for (let key in variables) {
             if (key !== 'env_vars') {
                 env_vars[key] = variables[key];
-                allSet &&= await tfcApi.setVariable(workspaceId, existingVars[key], key, variables[key]);
+                allSet &&= await tfcApi.setVariable(existingVars[key], key, variables[key]);
             } else {
                 // do nothing
             }
         }
 
-        let env_vars_string = "{\n";
-        for (let key in env_vars) {
-            env_vars_string += `"${key}"="${env_vars[key]}"\n`
-        }
-        env_vars_string += "}\n";
-        allSet &&= await tfcApi.setVariable(workspaceId, existingVars['env_vars'], 'env_vars', env_vars_string);
+        allSet &&= await tfcApi.setVariable(existingVars['env_vars'], 'env_vars', env_vars);
 
         if (!allSet) {
             console.log("not all variables were set");
             throw new Error ("Not all variables were set");
+        }
+
+        try {
+            console.log(`[DEBUG] TFVARS_FILENAME (${TFVARS_FILENAME}):`);
+            console.log(fs.readFileSync(TFVARS_FILENAME).toString());
+        } catch {
+            if (tfcApi instanceof TerraformS3Api) {
+                console.log(`[WARNING] TFVARS_FILENAME (${TFVARS_FILENAME}) not found.`);
+            }
+        }
+        try {
+            console.log(`[DEBUG] BACKEND_CONFIG_FILENAME (${BACKEND_CONFIG_FILE})`)
+            console.log(fs.readFileSync(BACKEND_CONFIG_FILE).toString());
+        } catch {
+            if (tfcApi instanceof TerraformS3Api) {
+                console.log(`[WARNING] BACKEND_CONFIG_FILENAME (${BACKEND_CONFIG_FILE}) not found.`)
+            }
         }
 
         // apply the plan

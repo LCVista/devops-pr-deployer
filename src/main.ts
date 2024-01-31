@@ -1,14 +1,23 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
+import fs from "fs";
 import {handleSlashCommand} from "./slash_command";
 import {handlePrClosed} from "./pr_closed";
 import {TerraformCloudApi} from "./tfc_api";
 import {TerraformCli} from "./tfc_cli";
 import {getIssueNumber, GithubHelper} from "./gh_helper";
+import { TerraformBackend } from './types';
+import { TerraformS3Api, TFVARS_FILENAME, writeTfvarsFile } from './s3_backend_api';
+import { error } from 'console';
 
 const github_token = core.getInput('gh_comment_token') || process.env['gh_comment_token'];
 const tfc_api_token = core.getInput('terraform_cloud_api_token') || process.env['terraform_cloud_api_token'];
 const tfc_org = core.getInput('terraform_org') || process.env['terraform_org'];
+const terraform_backend = core.getInput('terraform_backend') || process.env['terraform_backend'];
+const aws_access_id = core.getInput('aws_access_id') || process.env['aws_access_id'];
+const aws_secret_key = core.getInput('aws_secret_key') || process.env['aws_secret_key'];
+const s3_bucket = core.getInput('s3_bucket') || process.env['s3_bucket']
+const s3_dynamodb_table = core.getInput('s3_dynamodb_table') || process.env['s3_dynamodb_table']
 const workspacePrefix = 'zpr-';
 
 console.log("main.js started");
@@ -17,18 +26,44 @@ async function run(): Promise<void> {
     // Do validation first, but do not comment on PR
     try {
         console.log(`Received eventName=${github.context.eventName} and action=${github.context.payload.action}`);
+        console.log("hey i'm here");
 
         // Check required inputs
         if (!github_token) {
             throw new Error(`Missing required input 'token'.`)
         }
-        // Check required inputs
-        if (!tfc_api_token) {
-            throw new Error(`Missing required input 'terraform_cloud_api_token'.`)
+
+        if (!terraform_backend) {
+            throw new Error('Missing required input `terraform_backend`');
         }
-        // Check required inputs
-        if (!tfc_org) {
-            throw new Error(`Missing required input 'tfc_org'.`)
+
+        if (terraform_backend != "tfc" && terraform_backend != "s3") {
+            throw new Error(`Invalid terraform_backend value: ${terraform_backend}`)
+        }
+
+        console.log(`selected terraform_backend: ${terraform_backend}`)
+
+        if (terraform_backend === "tfc") {
+            if (!tfc_api_token) {
+                throw new Error(`Missing required input 'terraform_cloud_api_token'.`)
+            }
+            if (!tfc_org) {
+                throw new Error(`Missing required input 'tfc_org'.`)
+            }
+        }
+        if (terraform_backend === "s3") {
+            if (!aws_access_id) {
+                throw new Error('Missing required input `aws_access_id`')
+            }
+            if (!aws_secret_key) {
+                throw new Error('Missing required input `aws_secret_key`')
+            }
+            if (!s3_bucket) {
+                throw new Error('Missing required input `s3_bucket`')
+            }
+            if (!s3_dynamodb_table) {
+                throw new Error('Missing required input `s3_dynamodb_table`')
+            }
         }
 
         // Check required context properties exist (satisfy type checking)
@@ -45,8 +80,30 @@ async function run(): Promise<void> {
 
         let prInfo = await githubHelper.getPullRequest();
         let workspaceName = `${workspacePrefix}${prInfo.branch}`;
-        let tfcApi = new TerraformCloudApi(tfc_api_token, tfc_org, workspaceName);
-        let tfcCli = new TerraformCli(tfc_org, workspaceName);
+
+        let tfcApi: TerraformBackend;
+        if (terraform_backend.toLowerCase() === "s3") {
+            tfcApi = await TerraformS3Api.build(
+                workspaceName, 
+                s3_bucket || "", 
+                s3_dynamodb_table || ""
+            )
+
+            // pull existing variable state and write it to the fs so that the tf cli/s3 
+            // backend can consume it. To avoid cli warnings don't write an empty file.
+            const existingVars = await tfcApi.getExistingVars();
+            if (Object.keys(existingVars).length > 0) {
+                writeTfvarsFile(existingVars)
+            }
+        } else {
+            tfcApi = new TerraformCloudApi(
+                tfc_api_token || "", 
+                tfc_org || "", 
+                workspaceName
+            );
+        }
+
+        let tfcCli = new TerraformCli(tfcApi);
         console.log(`Workspace name=${workspaceName}, branch=${prInfo.branch}, sha1=${prInfo.sha1}`);
 
         if (github.context.eventName === 'issue_comment') {

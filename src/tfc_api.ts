@@ -1,17 +1,19 @@
 import fetch from 'node-fetch';
+import { TerraformBackend } from './types';
 
-type ExistingVar = {
+export type ExistingVar = {
     id: string,
     name: string,
     value: string
 }
 
-export class TerraformCloudApi {
+export class TerraformCloudApi implements TerraformBackend {
     private readonly tfcApiToken: string;
     public readonly orgId: string;
     public readonly workspaceName: string;
     public readonly baseDomain: string;
     private readonly __fetch: (url, opts) => Promise<any>;
+    private workspaceId: string;
 
     constructor(tfcApiToken: string,
                 orgId: string,
@@ -23,11 +25,27 @@ export class TerraformCloudApi {
         this.tfcApiToken = tfcApiToken;
         this.orgId = orgId;
         this.workspaceName = workspaceName;
+        this.workspaceId = "";
         // for mocking
         this.__fetch = fetchMock ? fetchMock : fetch;
     }
 
-    public async setVariable(workspaceId, existingValue, name, value): Promise<boolean> {
+    public configBlock(): string {
+        return (
+`terraform {
+    cloud {
+        hostname     = "${this.baseDomain}"
+        organization = "${this.orgId}"
+        workspaces {
+        name = "${this.workspaceName}"
+        }
+    }
+}`
+        );
+    }
+
+    public async setVariable(existingValue, name, value): Promise<boolean> {
+        const workspaceId = this.getWorkspaceId();
         let varId = existingValue ? existingValue.id : null;
         if (existingValue && existingValue.value === value) {
             console.log(`Skipping varId=${varId} key=${name} because value=${value} already present=${existingValue.value}`);
@@ -40,7 +58,7 @@ export class TerraformCloudApi {
                 "type": "vars",
                 "attributes": {
                     "key": name,
-                    "value": value,
+                    "value": name === "env_vars" ? hclFormat(value) : value,
                     "description": "provided by PR",
                     "category": "terraform",
                     "hcl": name === "env_vars",
@@ -77,7 +95,8 @@ export class TerraformCloudApi {
         }
     }
 
-    public async getExistingVars(workspaceId): Promise<{[key: string]: ExistingVar}>{
+    public async getExistingVars(): Promise<{[key: string]: ExistingVar}>{
+        const workspaceId = this.getWorkspaceId();
         let url = `https://${this.baseDomain}/api/v2/workspaces/${workspaceId}/vars`;
         let response = await this.__fetch(url, {
             method: "GET",
@@ -104,6 +123,8 @@ export class TerraformCloudApi {
     }
 
     public async getWorkspaceId(): Promise<string>{
+        if (this.workspaceId !== "") { return this.workspaceId; }
+
         let response = await this.__fetch(`https://${this.baseDomain}/api/v2/organizations/${this.orgId}/workspaces/${this.workspaceName}`, {
             method: 'GET',
             headers: {
@@ -114,7 +135,8 @@ export class TerraformCloudApi {
 
         if (response.ok) {
             let body = await response.json() as any;
-            return body.data.id;
+            this.workspaceId = body.data.id
+            return this.workspaceId;
         } else {
             throw new Error("Workspace does not exist")
         }
@@ -135,4 +157,10 @@ export class TerraformCloudApi {
             throw new Error("Workspace does not exist")
         }
     }
+}
+
+function hclFormat(data: {[key: string]: string}): string {
+    const reducer = (acc, key) => acc + `${key}=${data[key]}\n`
+    const fmtData = Object.keys(data).reduce(reducer, "")
+    return "{\n" + fmtData + "\n}";
 }
