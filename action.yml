@@ -90,8 +90,6 @@ runs:
         aws_secret_key: ${{ inputs.aws_secret_key }}
         s3_bucket: ${{ inputs.s3_bucket }}
         s3_dynamodb_table: ${{ inputs.s3_dynamodb_table }}
-        # default, assigning a value via /deploy will overwrite
-        TF_VAR_db_snapshot_identifier_dev: prod-db-01-lambda-snapshot-2024-02-01-encrypted
 
 branding:
   icon: 'target'
