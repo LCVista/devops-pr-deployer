@@ -26,7 +26,6 @@ async function run(): Promise<void> {
     // Do validation first, but do not comment on PR
     try {
         console.log(`Received eventName=${github.context.eventName} and action=${github.context.payload.action}`);
-        console.log("hey i'm here");
 
         // Check required inputs
         if (!github_token) {
