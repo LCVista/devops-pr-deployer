@@ -1,6 +1,7 @@
 import fs from "fs";
 import { ExistingVars, TerraformBackend, TFVars } from "./types";
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, NoSuchKey } from "@aws-sdk/client-s3";
+import { DynamoDBClient, DeleteItemCommand } from "@aws-sdk/client-dynamodb";
 import { ExistingVar } from "./tfc_api";
 import { Readable } from "stream";
 import { ReadableStream } from "stream/web";
@@ -13,6 +14,7 @@ export class TerraformS3Api implements TerraformBackend {
     private readonly dynamodbTable: string;
     private readonly s3Bucket: string;
     private readonly s3Client: S3Client;
+    private readonly dynamoDBClient: DynamoDBClient;
     private existingVars: ExistingVars;
 
     constructor(
@@ -28,6 +30,7 @@ export class TerraformS3Api implements TerraformBackend {
         this.s3Bucket = s3Bucket;
         this.dynamodbTable = dynamodbTable;
         this.s3Client = new S3Client();
+        this.dynamoDBClient = new DynamoDBClient();
         this.workspaceName = workspaceName;
         this.existingVars = {};
     }
@@ -92,6 +95,8 @@ export class TerraformS3Api implements TerraformBackend {
     }
 
     public async deleteWorkspace(): Promise<boolean> {
+        const dynamoDBClient = new DynamoDBClient();
+
         const deleteVars = new DeleteObjectCommand({
             Bucket: this.s3Bucket,
             Key: this.tfVarsS3Key
@@ -105,6 +110,17 @@ export class TerraformS3Api implements TerraformBackend {
         })
 
         await this.s3Client.send(deleteState)
+
+        const deleteLock = new DeleteItemCommand({
+            "Key": {
+                "LockId": {
+                    "S": `${this.s3Bucket}/${this.tfStateS3Key}`
+                }
+            },
+            "TableName": this.dynamodbTable
+        })
+
+        await this.dynamoDBClient.send(deleteLock);
 
         return true;
     }
