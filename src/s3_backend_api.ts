@@ -113,8 +113,8 @@ export class TerraformS3Api implements TerraformBackend {
 
         const deleteLock = new DeleteItemCommand({
             "Key": {
-                "LockId": {
-                    "S": `${this.s3Bucket}/${this.tfStateS3Key}`
+                "LockID": {
+                    "S": `${this.s3Bucket}/${this.tfStateS3Key}-md5`
                 }
             },
             "TableName": this.dynamodbTable
