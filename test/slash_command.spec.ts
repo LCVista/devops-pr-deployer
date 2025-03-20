@@ -220,7 +220,6 @@ describe('Terraform S3', () => {
         let mockedTfS3Api = await TerraformS3Api.build(
             "test_workspace",
             "test-s3-bucket",
-            "test-dynamo-table"
         )
         let mockedTerraformCli = new TerraformCli(mockedTfS3Api, mockExec);
 
@@ -264,7 +263,6 @@ describe('Terraform S3', () => {
         let mockedTfS3Api = await TerraformS3Api.build(
             "test_workspace",
             "test-s3-bucket",
-            "test-dynamo-table"
         )
         let mockedTerraformCli = new TerraformCli(mockedTfS3Api, mockExec);
 
