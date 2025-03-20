@@ -10,7 +10,6 @@ export const TFSTATE_FILENAME = 'terraform.tfstate';
 
 export class TerraformS3Api implements TerraformBackend {
     public readonly workspaceName: string;
-    private readonly dynamodbTable: string;
     private readonly s3Bucket: string;
     private readonly s3Client: S3Client;
     private existingVars: ExistingVars;
@@ -18,7 +17,6 @@ export class TerraformS3Api implements TerraformBackend {
     constructor(
         workspaceName: string,
         s3Bucket: string,
-        dynamodbTable: string,
         fromBuilder: boolean = false
     ) {
         if (!fromBuilder) {
@@ -26,7 +24,6 @@ export class TerraformS3Api implements TerraformBackend {
         }
 
         this.s3Bucket = s3Bucket;
-        this.dynamodbTable = dynamodbTable;
         this.s3Client = new S3Client();
         this.workspaceName = workspaceName;
         this.existingVars = {};
@@ -36,9 +33,8 @@ export class TerraformS3Api implements TerraformBackend {
     static async build(
         workspaceName: string,
         s3Bucket: string,
-        dynamodbTable: string
     ): Promise<TerraformS3Api> {
-        const api = new TerraformS3Api(workspaceName, s3Bucket, dynamodbTable, true)
+        const api = new TerraformS3Api(workspaceName, s3Bucket, true)
         // need to call this to hydrate the in-memory variable store
         await api.getExistingVars();
 
@@ -50,7 +46,6 @@ export class TerraformS3Api implements TerraformBackend {
 `terraform {
     backend "s3" {
         bucket = "${this.s3Bucket}"
-        dynamodb_table = "${this.dynamodbTable}"
         key = "${this.tfStateS3Key}"
         region = "us-west-2"
     }
