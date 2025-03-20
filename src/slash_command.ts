@@ -40,7 +40,8 @@ export async function handleSlashCommand(
         console.log("Received /deploy command");
         await githubHelper.addReaction(commentId, "eyes");
 
-        tfcCli.tfInit();
+        let initOut = tfcCli.tfInit();
+        console.log(`tfInit output: ${initOut}`);
 
         // handle input vars here
         let existingVars = await tfcApi.getExistingVars();
@@ -60,7 +61,6 @@ export async function handleSlashCommand(
         }
 
         let variables = extractVars(firstLine.slice(7).trim());
-
         console.log(`Received variables `, variables);
 
         for (let key in variables) {
