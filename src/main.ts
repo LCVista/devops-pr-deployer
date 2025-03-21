@@ -17,7 +17,6 @@ const terraform_backend = core.getInput('terraform_backend') || process.env['ter
 const aws_access_id = core.getInput('aws_access_id') || process.env['aws_access_id'];
 const aws_secret_key = core.getInput('aws_secret_key') || process.env['aws_secret_key'];
 const s3_bucket = core.getInput('s3_bucket') || process.env['s3_bucket']
-const s3_dynamodb_table = core.getInput('s3_dynamodb_table') || process.env['s3_dynamodb_table']
 const workspacePrefix = 'zpr-';
 
 console.log("main.js started");
@@ -60,9 +59,6 @@ async function run(): Promise<void> {
             if (!s3_bucket) {
                 throw new Error('Missing required input `s3_bucket`')
             }
-            if (!s3_dynamodb_table) {
-                throw new Error('Missing required input `s3_dynamodb_table`')
-            }
         }
 
         // Check required context properties exist (satisfy type checking)
@@ -85,7 +81,6 @@ async function run(): Promise<void> {
             tfcApi = await TerraformS3Api.build(
                 workspaceName, 
                 s3_bucket || "", 
-                s3_dynamodb_table || ""
             )
 
             // pull existing variable state and write it to the fs so that the tf cli/s3 

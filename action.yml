@@ -23,8 +23,6 @@ inputs:
     description: 'AWS secret key for accessing tfstate s3/dynamodb. required for S3 backend'
   s3_bucket:
     description: 's3 bucket for storing tfstate. required for S3 backend'
-  s3_dynamodb_table:
-    description: 'dynamodb table for tracking workspace locks. required for s3 backend'
   yarn_build:
     description: 'enable yarn build step. useful for development, but a little slow.'
     default: false
@@ -89,7 +87,6 @@ runs:
         aws_access_id: ${{ inputs.aws_access_id }}
         aws_secret_key: ${{ inputs.aws_secret_key }}
         s3_bucket: ${{ inputs.s3_bucket }}
-        s3_dynamodb_table: ${{ inputs.s3_dynamodb_table }}
 
 branding:
   icon: 'target'

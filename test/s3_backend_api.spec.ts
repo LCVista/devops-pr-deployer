@@ -33,7 +33,6 @@ test('#getExistingVars', async () => {
     const subject = await TerraformS3Api.build(
         'workspace-name', 
         's3-bucket', 
-        'dynamodb-table'
     );
 
     const output = await subject.getExistingVars();
@@ -45,7 +44,6 @@ test('#setVariable', async () => {
     const subject = await TerraformS3Api.build(
         'workspace-name', 
         's3-bucket', 
-        'dynamodb-table'
     );
     await subject.setVariable('', 'new', 'value');
 
