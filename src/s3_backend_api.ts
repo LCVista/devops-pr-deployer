@@ -77,10 +77,10 @@ export class TerraformS3Api implements TerraformBackend {
     public async setVariable(existingValue, name, value): Promise<boolean> {
         console.log('S3BackendApi: setVariable')
         if (existingValue && existingValue.value === value) {
-            console.log(`Skipping key=${name} because value=${value} already present=${existingValue.value}`);
+            console.log(`Skipping key=${name} because value=${JSON.stringify(value)} already present=${JSON.stringify(existingValue.value)}`);
             return true;
         } 
-        console.log(`Setting variable key='${name}' value='${value}'`);
+        console.log(`Setting variable key='${name}' value='${JSON.stringify(value)}'`);
         await this.updateExistingVars(name, value);
 
         return true;

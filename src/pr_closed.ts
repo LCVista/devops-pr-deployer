@@ -1,11 +1,12 @@
 import {TerraformCli} from "./tfc_cli";
-import {GithubHelper} from "./gh_helper";
+import { GithubHelper, PullRequestInfo } from "./gh_helper";
 import { TerraformBackend } from "./types";
 
 export async function handlePrClosed(
     tfcApi: TerraformBackend,
     tfcCli: TerraformCli,
-    ghHelper: GithubHelper
+    ghHelper: GithubHelper,
+    prInfo: PullRequestInfo,
 ){
     try {
         let outputInit = tfcCli.tfInit();
@@ -13,6 +14,17 @@ export async function handlePrClosed(
     } catch (e: any) {
         console.log('Workspace may not have been initialized', e);
     }
+
+    let existingVars = await tfcApi.getExistingVars();
+    console.log(`existingVars= ${JSON.stringify(existingVars)}`);
+    let allSet = true;
+    allSet &&= await tfcApi.setVariable(existingVars["git_branch"], "git_branch", prInfo.branch);
+    allSet &&= await tfcApi.setVariable(existingVars["git_sha1"], "git_sha1", prInfo.sha1);
+    if (!allSet) {
+        console.log("not all variables were set");
+        throw new Error ("Not all variables were set");
+    }
+
     let outputDestroy = tfcCli.tfDestroy();
     console.log(outputDestroy);
 

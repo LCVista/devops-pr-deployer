@@ -33,7 +33,7 @@ export async function handleSlashCommand(
     } else if (firstLine.startsWith('/destroy')) {
         console.log("Received /destroy command");
         await githubHelper.addReaction(commentId, "eyes");
-        await handlePrClosed(tfcApi, tfcCli, githubHelper);
+        await handlePrClosed(tfcApi, tfcCli, githubHelper, prInfo);
         await githubHelper.addReaction(commentId, "rocket");
         return;
     } else if (firstLine.startsWith('/deploy')) {
@@ -45,7 +45,7 @@ export async function handleSlashCommand(
 
         // handle input vars here
         let existingVars = await tfcApi.getExistingVars();
-        console.log(`existingVars= ${existingVars}`);
+        console.log(`existingVars= ${JSON.stringify(existingVars)}`);
 
         let env_vars = {};
         let allSet = true;
