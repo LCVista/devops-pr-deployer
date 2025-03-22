@@ -79,7 +79,7 @@ export class TerraformS3Api implements TerraformBackend {
         if (existingValue && existingValue.value === value) {
             console.log(`Skipping key=${name} because value=${JSON.stringify(value)} already present=${JSON.stringify(existingValue.value)}`);
             return true;
-        } 
+        }
         console.log(`Setting variable key='${name}' value='${JSON.stringify(value)}'`);
         await this.updateExistingVars(name, value);
 

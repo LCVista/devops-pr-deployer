@@ -205,7 +205,6 @@ describe('[Terraform Cloud]', () => {
 
         expect(mockExec.mock.calls[0][0]).toContain("terraform init");
         expect(mockExec.mock.calls[1][0]).toContain("terraform destroy");
-        console.log(mockFetch.mock.calls)
         expect(mockFetch.mock.calls[2][1].method).toBe('DELETE')
 
         expect(mockOctokit.rest.issues.createComment.mock.calls.length).toBe(1);
