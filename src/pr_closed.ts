@@ -16,7 +16,7 @@ export async function handlePrClosed(
     }
 
     let existingVars = await tfcApi.getExistingVars();
-    console.log(`existingVars= ${JSON.stringify(existingVars)}`);
+    console.log(`existingVars=${JSON.stringify(existingVars)}`);
     let allSet = true;
     allSet &&= await tfcApi.setVariable(existingVars["git_branch"], "git_branch", prInfo.branch);
     allSet &&= await tfcApi.setVariable(existingVars["git_sha1"], "git_sha1", prInfo.sha1);

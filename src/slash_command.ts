@@ -44,7 +44,7 @@ export async function handleSlashCommand(
 
         // handle input vars here
         let existingVars = await tfcApi.getExistingVars();
-        console.log(`existingVars= ${JSON.stringify(existingVars)}`);
+        console.log(`existingVars=${JSON.stringify(existingVars)}`);
 
         let env_vars = {};
         let allSet = true;
@@ -100,10 +100,12 @@ export async function handleSlashCommand(
 
         let previewUrl = tfcCli.tfOutputOneVariable("preview_url");
         let output = tfcCli.tfOutput();
-        await githubHelper.addComment(`Environment is ready at [${previewUrl}](${previewUrl})` +
+        await githubHelper.addComment(
+            `Environment is ready at [${previewUrl}](${previewUrl})` +
             "\n\n" +
             "```" +
-            output + "```"
+            output +
+            "```"
         );
         await githubHelper.addReaction(commentId, "rocket");
         return;
