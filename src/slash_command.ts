@@ -40,8 +40,7 @@ export async function handleSlashCommand(
         console.log("Received /deploy command");
         await githubHelper.addReaction(commentId, "eyes");
 
-        let initOut = tfcCli.tfInit();
-        console.log(`tfInit output: ${initOut}`);
+        tfcCli.tfInit();
 
         // handle input vars here
         let existingVars = await tfcApi.getExistingVars();
@@ -100,22 +99,17 @@ export async function handleSlashCommand(
         tfcCli.tfApply()
 
         let previewUrl = tfcCli.tfOutputOneVariable("preview_url");
-        console.log(`preview_url=${previewUrl}`);
-
         let output = tfcCli.tfOutput();
-        console.log(output);
-
         await githubHelper.addComment(`Environment is ready at [${previewUrl}](${previewUrl})` +
             "\n\n" +
             "```" +
-            output + "```");
+            output + "```"
+        );
         await githubHelper.addReaction(commentId, "rocket");
         return;
 
     } else {
-        console.debug(
-            'Unknown command'
-        )
+        console.debug('Unknown command')
         return;
     }
 }

@@ -9,8 +9,7 @@ export async function handlePrClosed(
     prInfo: PullRequestInfo,
 ){
     try {
-        let outputInit = tfcCli.tfInit();
-        console.log(outputInit);
+        tfcCli.tfInit();
     } catch (e: any) {
         console.log('Workspace may not have been initialized', e);
     }
@@ -25,8 +24,13 @@ export async function handlePrClosed(
         throw new Error ("Not all variables were set");
     }
 
-    let outputDestroy = tfcCli.tfDestroy();
-    console.log(outputDestroy);
+    try {
+        tfcCli.tfDestroy();
+        console.log(`Workspace ${tfcApi.workspaceName} destroyed`);
+    } catch (e: any) {
+        console.log('Workspace NOT destroyed:', e);
+        throw new Error(`Workspace ${tfcApi.workspaceName} NOT destroyed`);
+    }
 
     let result = await tfcApi.deleteWorkspace();
     if (result) {
