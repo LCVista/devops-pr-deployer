@@ -117,7 +117,7 @@ async function run(): Promise<void> {
                     githubHelper,
                     prInfo,
                     commentId,
-                    commentBody
+                    commentBody,
                 );
             } catch (e: any) {
                 let errorMessage = `I ran into an error processing the slash command.  Here's more information:\n\n` +
@@ -133,7 +133,8 @@ async function run(): Promise<void> {
                     await handlePrClosed(
                         tfcApi,
                         tfcCli,
-                        githubHelper
+                        githubHelper,
+                        prInfo,
                     );
                 } catch (e: any) {
                     let errorMessage = `I ran into an error handling the closed PR. Here's more information:\n${e.message}`;
