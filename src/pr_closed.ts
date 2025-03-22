@@ -10,6 +10,7 @@ export async function handlePrClosed(
 ){
     try {
         tfcCli.tfInit();
+        console.log(`Workspace ${tfcApi.workspaceName} was initialized`);
     } catch (e: any) {
         console.log('Workspace may not have been initialized', e);
     }
@@ -20,15 +21,13 @@ export async function handlePrClosed(
     allSet &&= await tfcApi.setVariable(existingVars["git_branch"], "git_branch", prInfo.branch);
     allSet &&= await tfcApi.setVariable(existingVars["git_sha1"], "git_sha1", prInfo.sha1);
     if (!allSet) {
-        console.log("not all variables were set");
-        throw new Error ("Not all variables were set");
+        throw new Error ("Github identifier variables were not successfully set");
     }
 
     try {
         tfcCli.tfDestroy();
-        console.log(`Workspace ${tfcApi.workspaceName} destroyed`);
+        console.log(`Workspace ${tfcApi.workspaceName} was destroyed`);
     } catch (e: any) {
-        console.log('Workspace NOT destroyed:', e);
         throw new Error(`Workspace ${tfcApi.workspaceName} NOT destroyed`);
     }
 
