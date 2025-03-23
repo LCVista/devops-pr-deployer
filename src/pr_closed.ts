@@ -15,11 +15,9 @@ export async function handlePrClosed(
         console.log('Workspace may not have been initialized', e);
     }
 
-    let existingVars = await tfcApi.getExistingVars();
-    console.log(`existingVars=${JSON.stringify(existingVars)}`);
     let allSet = true;
-    allSet &&= await tfcApi.setVariable(existingVars["git_branch"], "git_branch", prInfo.branch);
-    allSet &&= await tfcApi.setVariable(existingVars["git_sha1"], "git_sha1", prInfo.sha1);
+    allSet &&= await tfcApi.setVariable(null, "git_branch", prInfo.branch);
+    allSet &&= await tfcApi.setVariable(null, "git_sha1", prInfo.sha1);
     if (!allSet) {
         throw new Error ("Github identifier variables were not successfully set");
     }
