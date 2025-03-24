@@ -33,19 +33,18 @@ export async function handleSlashCommand(
     } else if (firstLine.startsWith('/destroy')) {
         console.log("Received /destroy command");
         await githubHelper.addReaction(commentId, "eyes");
-        await handlePrClosed(tfcApi, tfcCli, githubHelper);
+        await handlePrClosed(tfcApi, tfcCli, githubHelper, prInfo);
         await githubHelper.addReaction(commentId, "rocket");
         return;
     } else if (firstLine.startsWith('/deploy')) {
         console.log("Received /deploy command");
         await githubHelper.addReaction(commentId, "eyes");
 
-        let initOut = tfcCli.tfInit();
-        console.log(`tfInit output: ${initOut}`);
+        tfcCli.tfInit();
 
         // handle input vars here
         let existingVars = await tfcApi.getExistingVars();
-        console.log(`existingVars= ${existingVars}`);
+        console.log(`existingVars=${JSON.stringify(existingVars)}`);
 
         let env_vars = {};
         let allSet = true;
@@ -100,22 +99,19 @@ export async function handleSlashCommand(
         tfcCli.tfApply()
 
         let previewUrl = tfcCli.tfOutputOneVariable("preview_url");
-        console.log(`preview_url=${previewUrl}`);
-
         let output = tfcCli.tfOutput();
-        console.log(output);
-
-        await githubHelper.addComment(`Environment is ready at [${previewUrl}](${previewUrl})` +
+        await githubHelper.addComment(
+            `Environment is ready at [${previewUrl}](${previewUrl})` +
             "\n\n" +
             "```" +
-            output + "```");
+            output +
+            "```"
+        );
         await githubHelper.addReaction(commentId, "rocket");
         return;
 
     } else {
-        console.debug(
-            'Unknown command'
-        )
+        console.debug('Unknown command')
         return;
     }
 }
