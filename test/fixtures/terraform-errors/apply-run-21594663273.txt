@@ -1,0 +1,137 @@
+terraform apply -no-color --auto-approve
+
+Error: putting Secrets Manager Secret (arn:aws:secretsmanager:us-west-2:690287814337:secret:debt-178-2/lcv-ut0JSq) value: operation error Secrets Manager: PutSecretValue, https response error StatusCode: 400, RequestID: 329e2ae2-c0b9-4d1e-bdd6-3ec43fc51d58, ResourceNotFoundException: Secrets Manager can't find the specified secret.
+
+I received an error running the exec command
+  with module.pr.aws_secretsmanager_secret_version.lcv,
+  on .terraform/modules/pr/modules/lcv-dev-env/secrets.tf line 44, in resource "aws_secretsmanager_secret_version" "lcv":
+  44: resource "aws_secretsmanager_secret_version" "lcv" {
+
+
+Error: waiting for ELBv2 Load Balancer (arn:aws:elasticloadbalancing:us-west-2:690287814337:loadbalancer/app/lcv-web-lb-debt-178-2/22ba444920cb2c93) create: timeout while waiting for state to become 'active' (last state: 'provisioning', timeout: 10m0s)
+
+
+  with module.pr.module.lcv.aws_lb.alb,
+Error: putting Secrets Manager Secret (arn:aws:secretsmanager:us-west-2:690287814337:secret:debt-178-2/lcv-ut0JSq) value: operation error Secrets Manager: PutSecretValue, https response error StatusCode: 400, RequestID: 329e2ae2-c0b9-4d1e-bdd6-3ec43fc51d58, ResourceNotFoundException: Secrets Manager can't find the specified secret.
+  on .terraform/modules/pr/modules/lcv/alb.tf line 1, in resource "aws_lb" "alb":
+
+   1: resource "aws_lb" "alb" {
+
+
+Error: Missing Resource Identity After Create: The Terraform provider unexpectedly returned no resource identity after having no errors in the resource create. This is always a problem with the provider and should be reported to the provider developer
+
+  with module.pr.module.lcv.aws_lb.alb,
+  on .terraform/modules/pr/modules/lcv/alb.tf line 1, in resource "aws_lb" "alb":
+   1: resource "aws_lb" "alb" {
+
+
+Error: creating ECS Service (lcv-web-service-debt-178-2): operation error ECS: CreateService, https response error StatusCode: 400, RequestID: 6ce9186f-c906-48d5-8b79-12558609c9f3, InvalidParameterException: Error retrieving security group information for [sg-01b7d43cd28ee762f, sg-08c911225fde257f7]: The security group 'sg-01b7d43cd28ee762f' does not exist (ErrorCode: InvalidGroup.NotFound)
+
+  with module.pr.module.lcv.aws_ecs_service.lcv_web_service,
+  on .terraform/modules/pr/modules/lcv/lcv-web-service.tf line 85, in resource "aws_ecs_service" "lcv_web_service":
+  85: resource "aws_ecs_service" "lcv_web_service" {
+
+
+Error: reading SQS Queue (https://sqs.us-west-2.amazonaws.com/690287814337/lcv-debt-178-2-generic-deadletter) attribute (RedriveAllowPolicy): couldn't find resource
+
+  with module.pr.module.lcv.aws_sqs_queue_redrive_allow_policy.terraform_queue_redrive_allow_policy,
+  on .terraform/modules/pr/modules/lcv/sqs.tf line 27, in resource "aws_sqs_queue_redrive_allow_policy" "terraform_queue_redrive_allow_policy":
+  27: resource "aws_sqs_queue_redrive_allow_policy" "terraform_queue_redrive_allow_policy" {
+
+
+Error: Missing Resource Identity After Create: The Terraform provider unexpectedly returned no resource identity after having no errors in the resource create. This is always a problem with the provider and should be reported to the provider developer
+
+  with module.pr.module.lcv.aws_sqs_queue_redrive_allow_policy.terraform_queue_redrive_allow_policy,
+  on .terraform/modules/pr/modules/lcv/sqs.tf line 27, in resource "aws_sqs_queue_redrive_allow_policy" "terraform_queue_redrive_allow_policy":
+  27: resource "aws_sqs_queue_redrive_allow_policy" "terraform_queue_redrive_allow_policy" {
+
+  with module.pr.aws_secretsmanager_secret_version.lcv,
+  on .terraform/modules/pr/modules/lcv-dev-env/secrets.tf line 44, in resource "aws_secretsmanager_secret_version" "lcv":
+  44: resource "aws_secretsmanager_secret_version" "lcv" {
+module.pr.module.lcv.aws_lb.alb: Still creating... [00m10s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [00m10s elapsed]
+module.pr.aws_route53_record.wildcard_validation: Still creating... [00m10s elapsed]
+module.pr.module.lcv.aws_sqs_queue_redrive_allow_policy.terraform_queue_redrive_allow_policy: Still creating... [00m20s elapsed]
+module.pr.module.lcv.aws_service_discovery_private_dns_namespace.lcv: Still creating... [00m20s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [00m20s elapsed]
+module.pr.aws_route53_record.wildcard_validation: Still creating... [00m20s elapsed]
+module.pr.module.lcv.aws_sqs_queue_redrive_allow_policy.terraform_queue_redrive_allow_policy: Still creating... [00m30s elapsed]
+module.pr.module.lcv.aws_service_discovery_private_dns_namespace.lcv: Still creating... [00m30s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [00m30s elapsed]
+module.pr.aws_route53_record.wildcard_validation: Still creating... [00m30s elapsed]
+module.pr.aws_route53_record.wildcard_validation: Creation complete after 31s [id=Z0618862QAYDXWAFVBP0__5ae7f5e23a5f424ff3770b2a909c74f2.debt-178-2.testalavista.com._CNAME]
+module.pr.aws_acm_certificate_validation.wildcard_validation: Creating...
+module.pr.aws_acm_certificate_validation.wildcard_validation: Creation complete after 0s [id=2026-02-02 14:51:20.574 +0000 UTC]
+module.pr.module.lcv.aws_sqs_queue_redrive_allow_policy.terraform_queue_redrive_allow_policy: Still creating... [00m40s elapsed]
+module.pr.module.lcv.aws_service_discovery_private_dns_namespace.lcv: Still creating... [00m40s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [00m40s elapsed]
+module.pr.module.lcv.aws_service_discovery_private_dns_namespace.lcv: Creation complete after 44s [id=ns-c47mget6c6ic7sm7]
+module.pr.module.lcv.aws_service_discovery_service.rabbitmq: Creating...
+module.pr.module.lcv.aws_service_discovery_service.lcv_web_service: Creating...
+module.pr.module.lcv.aws_service_discovery_service.lcv_web_service: Creation complete after 0s [id=srv-m4bihhfrb2xm4npa]
+module.pr.module.lcv.aws_service_discovery_service.rabbitmq: Creation complete after 0s [id=srv-hzggz5rl2ii6wlqu]
+module.pr.aws_secretsmanager_secret_version.lcv: Creating...
+module.pr.module.lcv.aws_ecs_service.rabbitmq: Creating...
+module.pr.module.lcv.aws_ecs_service.rabbitmq: Creation complete after 1s [id=arn:aws:ecs:us-west-2:690287814337:service/dev-cluster/rabbitmq-debt-178-2]
+module.pr.module.lcv.aws_sqs_queue_redrive_allow_policy.terraform_queue_redrive_allow_policy: Still creating... [00m50s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [00m50s elapsed]
+module.pr.module.lcv.aws_sqs_queue_redrive_allow_policy.terraform_queue_redrive_allow_policy: Still creating... [01m00s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [01m00s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [01m10s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [01m20s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [01m30s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [01m40s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [01m50s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [02m00s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [02m10s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [02m20s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [02m30s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [02m40s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [02m50s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [03m00s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [03m10s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [03m20s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [03m30s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [03m40s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [03m50s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [04m00s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [04m10s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [04m20s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [04m30s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [04m40s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [04m50s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [05m00s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [05m10s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [05m20s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [05m30s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [05m40s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [05m50s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [06m00s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [06m10s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [06m20s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [06m30s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [06m40s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [06m50s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [07m00s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [07m10s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [07m20s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [07m30s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [07m40s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [07m50s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [08m00s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [08m10s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [08m20s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [08m30s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [08m40s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [08m50s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [09m00s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [09m10s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [09m20s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [09m30s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [09m40s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [09m50s elapsed]
+module.pr.module.lcv.aws_lb.alb: Still creating... [10m00s elapsed]
+
+
+Created comment id '3835652157' on issue '17116'.
+

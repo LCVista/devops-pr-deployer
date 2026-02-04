@@ -1,0 +1,7 @@
+module.storage.aws_s3_bucket.media: Creating...
+
+Error: creating S3 Bucket (my-bucket): BucketAlreadyExists: The requested bucket name is not available
+
+  with aws_s3_bucket.example,
+  on main.tf line 10, in resource "aws_s3_bucket" "example":
+  10: resource "aws_s3_bucket" "example" {

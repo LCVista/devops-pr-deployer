@@ -1,0 +1,9 @@
+module.pr.aws_instance.worker[0]: Creating...
+module.pr.aws_instance.worker[1]: Creating...
+module.pr.aws_instance.worker[2]: Creating...
+
+Error: error launching EC2 Instance: VcpuLimitExceeded: You have requested more vCPU capacity than your current vCPU limit of 32 allows for the instance bucket that the specified instance type belongs to
+
+  with module.pr.aws_instance.worker[2],
+  on .terraform/modules/pr/ec2.tf line 10, in resource "aws_instance" "worker":
+  10: resource "aws_instance" "worker" {

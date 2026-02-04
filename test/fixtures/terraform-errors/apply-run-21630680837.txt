@@ -1,0 +1,117 @@
+terraform apply -no-color --auto-approve
+module.pr.random_password.rabbitmq_password: Refreshing state... [id=none]
+module.pr.random_password.db_password: Refreshing state... [id=none]
+module.pr.data.aws_secretsmanager_secret.shared_cognito: Reading...
+module.pr.data.aws_vpc.selected: Reading...
+module.pr.module.lcv.aws_cloudwatch_log_group.management_logs: Refreshing state... [id=/ecs/sr-1944-ca/lcv-management]
+module.pr.data.aws_canonical_user_id.current: Reading...
+module.pr.data.aws_elasticache_cluster.shared_redis: Reading...
+module.pr.data.aws_secretsmanager_secret.shared_lcv: Reading...
+module.pr.module.lcv.data.aws_caller_identity.current: Reading...
+module.pr.aws_iam_user.lcv_user: Refreshing state... [id=lcv-user-sr-1944-ca]
+module.pr.aws_acm_certificate.wildcard: Refreshing state... [id=arn:aws:acm:us-west-2:690287814337:certificate/b083482f-4b4b-4ef8-8814-e08c67312435]
+module.pr.aws_s3_bucket.media_bucket: Refreshing state... [id=lcv-dev-sr-1944-ca-tenant-media]
+module.pr.module.lcv.data.aws_caller_identity.current: Read complete after 0s [id=690287814337]
+module.pr.data.aws_caller_identity.current: Reading...
+module.pr.data.aws_secretsmanager_secret.shared_cognito: Read complete after 0s [id=arn:aws:secretsmanager:us-west-2:690287814337:secret:dev/cognito-EAFU3U]
+module.pr.data.aws_caller_identity.current: Read complete after 0s [id=690287814337]
+module.pr.module.lcv.aws_sqs_queue.lcv_generic_deadletter_queue: Refreshing state... [id=https://sqs.us-west-2.amazonaws.com/690287814337/lcv-sr-1944-ca-generic-deadletter]
+module.pr.data.aws_secretsmanager_secret.shared_lcv: Read complete after 0s [id=arn:aws:secretsmanager:us-west-2:690287814337:secret:staging/lcv-oW1sCX]
+module.pr.module.lcv.aws_appautoscaling_target.lcv_sqs_generic_worker[0]: Refreshing state... [id=service/dev-cluster/lcv-sqs-generic-worker-sr-1944-ca]
+module.pr.data.aws_kms_key.staging: Reading...
+module.pr.data.aws_canonical_user_id.current: Read complete after 0s [id=cea4b19bbe95579577314b9df712a54ea28410ac5a82867436539fb90abae87e]
+module.pr.module.lcv.data.aws_ecr_repository.selected: Reading...
+module.pr.data.aws_elasticache_cluster.shared_redis: Read complete after 0s [id=tenants-dev]
+module.pr.module.lcv.aws_iam_role.rabbitmq_role: Refreshing state... [id=rabbitmq-sr-1944-ca]
+module.pr.data.aws_kms_key.staging: Read complete after 0s [id=8c572825-2775-4abe-8591-3534018d37fb]
+module.pr.data.aws_db_snapshot.most_recent_prod_snapshot: Reading...
+module.pr.module.lcv.aws_iam_role.lcv_role: Refreshing state... [id=lcv-shared-sr-1944-ca]
+module.pr.aws_iam_policy.lcv_user_ses: Refreshing state... [id=arn:aws:iam::690287814337:policy/sr-1944-ca..modules..lcv-dev-env..iam..access-to-ses]
+module.pr.data.aws_secretsmanager_secret.shared_db: Reading...
+module.pr.data.aws_route53_zone.selected: Reading...
+module.pr.module.lcv.aws_cloudwatch_log_group.lcv_cloudwatch_logs: Refreshing state... [id=/ecs/sr-1944-ca/lcv]
+module.pr.data.aws_db_snapshot.most_recent_prod_snapshot: Read complete after 1s [id=prod-db-01-lambda-snapshot-2026-02-02-encrypted]
+module.pr.data.aws_secretsmanager_secret.shared_db: Read complete after 1s [id=arn:aws:secretsmanager:us-west-2:690287814337:secret:shared-qa/db-7nA8UQ]
+module.pr.data.aws_secretsmanager_secret_version.shared_cognito: Reading...
+module.pr.aws_iam_policy.lcv_user_sqs: Refreshing state... [id=arn:aws:iam::690287814337:policy/sr-1944-ca..modules..lcv-dev-env..iam..access-to-sqs]
+module.pr.data.aws_secretsmanager_secret_version.shared_cognito: Read complete after 0s [id=arn:aws:secretsmanager:us-west-2:690287814337:secret:dev/cognito-EAFU3U|AWSCURRENT]
+module.pr.data.aws_secretsmanager_secret_version.shared_lcv: Reading...
+module.pr.aws_iam_policy.lcv_user_cognito: Refreshing state... [id=arn:aws:iam::690287814337:policy/sr-1944-ca..modules..lcv-dev-env..iam..access-to-cognito]
+module.pr.data.aws_vpc.selected: Read complete after 1s [id=vpc-0be40cfe7e45ce83f]
+module.pr.aws_secretsmanager_secret.db: Refreshing state... [id=arn:aws:secretsmanager:us-west-2:690287814337:secret:sr-1944-ca/db-H5E3hs]
+module.pr.data.aws_secretsmanager_secret_version.shared_lcv: Read complete after 0s [id=arn:aws:secretsmanager:us-west-2:690287814337:secret:staging/lcv-oW1sCX|AWSCURRENT]
+module.pr.aws_secretsmanager_secret.lcv: Refreshing state... [id=arn:aws:secretsmanager:us-west-2:690287814337:secret:sr-1944-ca/lcv-r3oYtq]
+module.pr.aws_iam_access_key.lcv_user: Refreshing state... [id=AKIA2BOC4E3A5QFUZNM2]
+module.pr.module.lcv.aws_sqs_queue.lcv_generic_queue: Refreshing state... [id=https://sqs.us-west-2.amazonaws.com/690287814337/lcv-sr-1944-ca-generic]
+module.pr.data.aws_secretsmanager_secret_version.shared_db: Reading...
+module.pr.data.aws_subnets.public: Reading...
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 09m20s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 09m30s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 09m40s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 09m50s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 10m00s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 10m10s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 10m20s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 10m30s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 10m40s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 10m50s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 11m00s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 11m10s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 11m20s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 11m30s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 11m40s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 11m50s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 12m00s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 12m10s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 12m20s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 12m30s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 12m40s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 12m50s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 13m00s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 13m10s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 13m20s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 13m30s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 13m40s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 13m50s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 14m00s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 14m10s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 14m20s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 14m30s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 14m40s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 14m50s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still modifying... [id=arn:aws:ecs:us-west-2:690287814337:serv...dev-cluster/lcv-web-service-sr-1944-ca, 15m00s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Modifications complete after 15m6s [id=arn:aws:ecs:us-west-2:690287814337:service/dev-cluster/lcv-web-service-sr-1944-ca]
+
+Apply complete! Resources: 5 added, 3 changed, 5 destroyed.
+
+Outputs:
+
+db_name = "whitleypenn"
+environment_name = "sr-1944-ca"
+environment_variables = tomap({
+  "db_name" = "whitleypenn"
+  "git_branch" = "SR-1944-Calendar-sponsor-default-setting-not-working"
+  "git_sha1" = "7caa7c62e817ea11a47bd1b4ecb4892612d2216b"
+})
+git_sha1 = "7caa7c62e817ea11a47bd1b4ecb4892612d2216b"
+logs = "https://service.us2.sumologic.com/ui#/search/create?query=_sourceCategory=sr-1944-ca/web&endTime=-60m"
+preview_url = "https://whitleypenn.sr-1944-calendar-sponsor-defau.testalavista.com/login/basic/"
+
+Running exec command:
+terraform output -no-color --raw preview_url
+https://whitleypenn.sr-1944-calendar-sponsor-defau.testalavista.com/login/basic/
+Running exec command:
+terraform output -no-color
+db_name = "whitleypenn"
+environment_name = "sr-1944-ca"
+environment_variables = tomap({
+  "db_name" = "whitleypenn"
+  "git_branch" = "SR-1944-Calendar-sponsor-default-setting-not-working"
+  "git_sha1" = "7caa7c62e817ea11a47bd1b4ecb4892612d2216b"
+})
+git_sha1 = "7caa7c62e817ea11a47bd1b4ecb4892612d2216b"
+logs = "https://service.us2.sumologic.com/ui#/search/create?query=_sourceCategory=sr-1944-ca/web&endTime=-60m"
+preview_url = "https://whitleypenn.sr-1944-calendar-sponsor-defau.testalavista.com/login/basic/"
+
+Created comment id '3841173290' on issue '17126'.
+

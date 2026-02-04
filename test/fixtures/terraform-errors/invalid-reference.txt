@@ -1,0 +1,6 @@
+Error: Reference to undeclared resource
+
+  on main.tf line 25, in resource "aws_route53_record" "www":
+  25:     name    = aws_lb.web.dns_name
+
+A managed resource "aws_lb" "web" has not been declared in the root module.

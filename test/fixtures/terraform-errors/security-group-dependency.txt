@@ -1,0 +1,7 @@
+module.pr.aws_security_group.web: Destroying...
+
+Error: error deleting Security Group (sg-0abc123def456): DependencyViolation: resource sg-0abc123def456 has a dependent object
+
+  with module.pr.aws_security_group.web,
+  on .terraform/modules/pr/security.tf line 5, in resource "aws_security_group" "web":
+   5: resource "aws_security_group" "web" {

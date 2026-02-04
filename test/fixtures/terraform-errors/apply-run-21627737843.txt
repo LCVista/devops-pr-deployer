@@ -1,0 +1,76 @@
+terraform apply -no-color --auto-approve
+
+Error: waiting for ECS Service (arn:aws:ecs:us-west-2:690287814337:service/dev-cluster/lcv-web-service-debt-178) create: timeout while waiting for state to become 'tfSTABLE' (last state: 'tfPENDING', timeout: 20m0s)
+
+  with module.pr.module.lcv.aws_ecs_service.lcv_web_service,
+  on .terraform/modules/pr/modules/lcv/lcv-web-service.tf line 85, in resource "aws_ecs_service" "lcv_web_service":
+I received an error running the exec command
+
+Error: waiting for ECS Service (arn:aws:ecs:us-west-2:690287814337:service/dev-cluster/lcv-web-service-debt-178) create: timeout while waiting for state to become 'tfSTABLE' (last state: 'tfPENDING', timeout: 20m0s)
+
+  with module.pr.module.lcv.aws_ecs_service.lcv_web_service,
+  on .terraform/modules/pr/modules/lcv/lcv-web-service.tf line 85, in resource "aws_ecs_service" "lcv_web_service":
+  85: resource "aws_ecs_service" "lcv_web_service" {
+
+
+module.pr.data.aws_secretsmanager_secret.shared_cognito: Reading...
+module.pr.data.aws_db_snapshot.most_recent_prod_snapshot: Reading...
+module.pr.data.aws_kms_key.staging: Reading...
+module.pr.data.aws_caller_identity.current: Reading...
+module.pr.data.aws_vpc.selected: Reading...
+module.pr.data.aws_secretsmanager_secret.shared_lcv: Reading...
+module.pr.data.aws_elasticache_cluster.shared_redis: Reading...
+module.pr.data.aws_canonical_user_id.current: Reading...
+module.pr.data.aws_caller_identity.current: Read complete after 0s [id=690287814337]
+module.pr.data.aws_route53_zone.selected: Reading...
+module.pr.module.lcv.data.aws_ecr_repository.selected: Reading...
+module.pr.module.lcv.data.aws_caller_identity.current: Reading...
+module.pr.data.aws_canonical_user_id.current: Read complete after 0s [id=cea4b19bbe95579577314b9df712a54ea28410ac5a82867436539fb90abae87e]
+module.pr.data.aws_secretsmanager_secret.shared_lcv: Read complete after 0s [id=arn:aws:secretsmanager:us-west-2:690287814337:secret:staging/lcv-oW1sCX]
+module.pr.data.aws_db_snapshot.most_recent_prod_snapshot: Read complete after 0s [id=prod-db-01-lambda-snapshot-2026-02-02-encrypted]
+  85: resource "aws_ecs_service" "lcv_web_service" {
+module.pr.module.lcv.data.aws_caller_identity.current: Read complete after 0s [id=690287814337]
+module.pr.data.aws_secretsmanager_secret.shared_db: Reading...
+module.pr.data.aws_kms_key.staging: Read complete after 0s [id=8c572825-2775-4abe-8591-3534018d37fb]
+module.pr.data.aws_secretsmanager_secret.shared_cognito: Read complete after 0s [id=arn:aws:secretsmanager:us-west-2:690287814337:secret:dev/cognito-EAFU3U]
+module.pr.data.aws_secretsmanager_secret_version.shared_lcv: Reading...
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [16m00s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [16m10s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [16m20s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [16m30s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [16m40s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [16m50s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [17m00s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [17m10s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [17m20s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [17m30s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [17m40s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [17m50s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [18m00s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [18m10s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [18m20s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [18m30s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [18m40s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [18m50s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [19m00s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [19m10s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [19m20s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [19m30s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [19m40s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [19m50s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [20m00s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [20m10s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [20m20s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [20m30s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [20m40s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [20m50s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [21m00s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [21m10s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [21m20s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [21m30s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [21m40s elapsed]
+module.pr.module.lcv.aws_ecs_service.lcv_web_service: Still creating... [21m50s elapsed]
+
+
+Created comment id '3840798956' on issue '17039'.
+

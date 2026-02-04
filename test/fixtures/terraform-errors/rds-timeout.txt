@@ -1,0 +1,13 @@
+module.pr.aws_db_instance.main: Creating...
+module.pr.aws_db_instance.main: Still creating... [5m0s elapsed]
+module.pr.aws_db_instance.main: Still creating... [10m0s elapsed]
+module.pr.aws_db_instance.main: Still creating... [15m0s elapsed]
+module.pr.aws_db_instance.main: Still creating... [20m0s elapsed]
+module.pr.aws_db_instance.main: Still creating... [25m0s elapsed]
+module.pr.aws_db_instance.main: Still creating... [30m0s elapsed]
+
+Error: error creating RDS Database Instance (pr-db-178): timeout while waiting for state to become 'available'
+
+  with module.pr.aws_db_instance.main,
+  on .terraform/modules/pr/rds.tf line 15, in resource "aws_db_instance" "main":
+  15: resource "aws_db_instance" "main" {
