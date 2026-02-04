@@ -93,6 +93,18 @@ describe('terraform_error_parser', () => {
             expect(result).not.toContain('I received an error');
         });
 
+        it('should parse secrets manager not found error', () => {
+            const rawOutput = loadFixture('apply-run-21594663273.txt');
+            const result = parseTerraformError(rawOutput);
+            
+            expect(result).toContain('**Error:**');
+            expect(result).toContain('Secrets Manager');
+            expect(result).toContain('ResourceNotFoundException');
+            // Should NOT contain verbose state reading lines
+            expect(result).not.toContain('Reading...');
+            expect(result).not.toContain('Read complete');
+        });
+
         it('should parse provider not configured error', () => {
             const rawOutput = loadFixture('provider-not-configured.txt');
             const result = parseTerraformError(rawOutput);
