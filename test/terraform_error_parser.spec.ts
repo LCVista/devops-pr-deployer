@@ -155,16 +155,45 @@ Error: timeout creating resource
 `;
             const result = extractTerraformError(rawOutput);
             
-            expect(result.summary).toBe('timeout creating resource');
-            expect(result.resource).toBe('module.pr.module.lcv.aws_ecs_service.lcv_web_service');
+            expect(result.errors).toHaveLength(1);
+            expect(result.errors[0].summary).toBe('timeout creating resource');
+            expect(result.errors[0].resource).toBe('module.pr.module.lcv.aws_ecs_service.lcv_web_service');
         });
 
         it('should handle error without resource info', () => {
             const rawOutput = loadFixture('provider-not-configured.txt');
             const result = extractTerraformError(rawOutput);
             
-            expect(result.summary).toBe('Provider configuration not found');
-            expect(result.resource).toBeUndefined();
+            expect(result.errors).toHaveLength(1);
+            expect(result.errors[0].summary).toBe('Provider configuration not found');
+            expect(result.errors[0].resource).toBeUndefined();
+        });
+
+        it('should extract multiple errors from output', () => {
+            const rawOutput = `
+Error: first error message
+
+  with module.pr.aws_s3_bucket.bucket1,
+  on file.tf line 1
+
+Error: second error message
+
+  with module.pr.aws_ecs_service.service1,
+  on file.tf line 10
+
+Error: third error message
+
+  on file.tf line 20
+`;
+            const result = extractTerraformError(rawOutput);
+            
+            expect(result.errors).toHaveLength(3);
+            expect(result.errors[0].summary).toBe('first error message');
+            expect(result.errors[0].resource).toBe('module.pr.aws_s3_bucket.bucket1');
+            expect(result.errors[1].summary).toBe('second error message');
+            expect(result.errors[1].resource).toBe('module.pr.aws_ecs_service.service1');
+            expect(result.errors[2].summary).toBe('third error message');
+            expect(result.errors[2].resource).toBeUndefined();
         });
     });
 

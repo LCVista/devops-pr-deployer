@@ -12,6 +12,11 @@ export interface ParsedTerraformError {
     details?: string;
 }
 
+export interface ParsedTerraformErrors {
+    /** All errors extracted from Terraform output */
+    errors: ParsedTerraformError[];
+}
+
 /**
  * Extracts a human-readable error message from verbose Terraform output.
  * 
@@ -20,82 +25,94 @@ export interface ParsedTerraformError {
  */
 export function parseTerraformError(rawOutput: string): string {
     const parsed = extractTerraformError(rawOutput);
-    return formatTerraformError(parsed);
+    return formatTerraformErrors(parsed);
 }
 
 /**
  * Extracts structured error information from Terraform output.
+ * Collects all errors found in the output, not just the first one.
  */
-export function extractTerraformError(rawOutput: string): ParsedTerraformError {
+export function extractTerraformError(rawOutput: string): ParsedTerraformErrors {
     const lines = rawOutput.split('\n');
+    const errors: ParsedTerraformError[] = [];
     
-    // Look for the main error line (starts with "Error:")
-    let errorLineIndex = -1;
-    let errorMessage = '';
-    
+    // Find all error line indices
+    const errorLineIndices: number[] = [];
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
         if (line.startsWith('Error:')) {
-            errorLineIndex = i;
-            errorMessage = line.substring(6).trim();
-            break;
+            errorLineIndices.push(i);
         }
     }
     
-    if (errorLineIndex === -1) {
+    if (errorLineIndices.length === 0) {
         // No standard error format found, try to find any meaningful error
         return {
-            summary: findFallbackError(rawOutput)
+            errors: [{
+                summary: findFallbackError(rawOutput)
+            }]
         };
     }
     
-    // Extract resource information (usually in "with <resource>" line)
-    let resource: string | undefined;
-    let details: string | undefined;
-    const contextLines: string[] = [];
-    
-    for (let i = errorLineIndex + 1; i < Math.min(errorLineIndex + 10, lines.length); i++) {
-        const line = lines[i].trim();
+    // Process each error
+    for (let idx = 0; idx < errorLineIndices.length; idx++) {
+        const errorLineIndex = errorLineIndices[idx];
+        const nextErrorLineIndex = idx + 1 < errorLineIndices.length ? errorLineIndices[idx + 1] : lines.length;
+        const errorMessage = lines[errorLineIndex].trim().substring(6).trim();
         
-        if (line.startsWith('with ')) {
-            resource = line.substring(5).replace(/,$/, '').trim();
-        } else if (line.startsWith('on ') && line.includes(' line ')) {
-            // Skip file location lines - not useful for end users
-            continue;
-        } else if (line.match(/^\d+:/)) {
-            // Skip source code reference lines
-            continue;
-        } else if (line.startsWith('Error:')) {
-            // Skip duplicate error lines
-            continue;
-        } else if (line.length > 0 && !line.startsWith('module.') && !line.match(/^[\s]*$/) && !line.includes('I received an error')) {
-            contextLines.push(line);
+        // Extract resource information (usually in "with <resource>" line)
+        let resource: string | undefined;
+        let details: string | undefined;
+        const contextLines: string[] = [];
+        
+        // Only look up to the next error or 10 lines, whichever is smaller
+        const maxLookAhead = Math.min(errorLineIndex + 10, nextErrorLineIndex);
+        
+        for (let i = errorLineIndex + 1; i < maxLookAhead; i++) {
+            const line = lines[i].trim();
+            
+            if (line.startsWith('with ')) {
+                resource = line.substring(5).replace(/,$/, '').trim();
+            } else if (line.startsWith('on ') && line.includes(' line ')) {
+                // Skip file location lines - not useful for end users
+                continue;
+            } else if (line.match(/^\d+:/)) {
+                // Skip source code reference lines
+                continue;
+            } else if (line.startsWith('Error:')) {
+                // Stop at the next error
+                break;
+            } else if (line.length > 0 && !line.startsWith('module.') && !line.match(/^[\s]*$/) && !line.includes('I received an error')) {
+                contextLines.push(line);
+            }
+            
+            // Stop if we hit an empty section after collecting context
+            if (line === '' && contextLines.length > 0) {
+                break;
+            }
         }
         
-        // Stop if we hit another error or empty section
-        if (line === '' && contextLines.length > 0) {
-            break;
+        // Filter out details that are just duplicates of the summary
+        const filteredContextLines = contextLines.filter(line => 
+            !errorMessage.includes(line) && !line.includes(errorMessage.substring(0, 50))
+        );
+        
+        if (filteredContextLines.length > 0) {
+            details = filteredContextLines.slice(0, 3).join(' ');
         }
+        
+        errors.push({
+            summary: errorMessage,
+            resource,
+            details
+        });
     }
     
-    // Filter out details that are just duplicates of the summary
-    const filteredContextLines = contextLines.filter(line => 
-        !errorMessage.includes(line) && !line.includes(errorMessage.substring(0, 50))
-    );
-    
-    if (filteredContextLines.length > 0) {
-        details = filteredContextLines.slice(0, 3).join(' ');
-    }
-    
-    return {
-        summary: errorMessage,
-        resource,
-        details
-    };
+    return { errors };
 }
 
 /**
- * Formats a parsed error into a human-readable message.
+ * Formats a single parsed error into a human-readable message.
  */
 export function formatTerraformError(parsed: ParsedTerraformError): string {
     let message = `**Error:** ${parsed.summary}`;
@@ -117,6 +134,27 @@ export function formatTerraformError(parsed: ParsedTerraformError): string {
     }
     
     return message;
+}
+
+/**
+ * Formats all parsed errors into a human-readable message.
+ */
+export function formatTerraformErrors(parsed: ParsedTerraformErrors): string {
+    if (parsed.errors.length === 0) {
+        return 'Terraform command failed with no identifiable errors';
+    }
+    
+    if (parsed.errors.length === 1) {
+        return formatTerraformError(parsed.errors[0]);
+    }
+    
+    // Multiple errors - format each one with a separator
+    const formattedErrors = parsed.errors.map((error, index) => {
+        const header = `### Error ${index + 1} of ${parsed.errors.length}`;
+        return `${header}\n\n${formatTerraformError(error)}`;
+    });
+    
+    return formattedErrors.join('\n\n---\n\n');
 }
 
 /**
