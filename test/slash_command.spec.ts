@@ -51,6 +51,9 @@ let mockExec = jest.fn( (cmd: string): Buffer => {
         return new Buffer("plan applied");
     } else if (cmd.indexOf("output") >= 0) {
         return new Buffer(":::environment created:::");
+    } else if (cmd.indexOf("show") >= 0) {
+        // Empty state response for terraform show
+        return new Buffer("The state file is empty. No resources are represented.");
     }
     else {
         return new Buffer("succeeded");

@@ -1,5 +1,6 @@
 import fs from "fs";
 import { TerraformBackend } from "./types";
+import { parseTerraformError } from "./terraform_error_parser";
 const { execSync } = require("child_process");
 
 export const BACKEND_CONFIG_FILE = 'terraform.tf';
@@ -16,7 +17,7 @@ export class TerraformCli {
         this.exec = exec ? exec : execSync;
     }
 
-    private __exec(command) : string {
+    private __exec(command, parseErrors: boolean = true) : string {
         try {
             console.log("Running exec command:");
             console.log(command);
@@ -26,14 +27,19 @@ export class TerraformCli {
         } catch (error: any) {
             console.log("I received an error running the exec command");
             if (error) {
-                let errorMessage: string = "";
+                let rawOutput: string = "";
                 if (error.stderr) {
-                    errorMessage += error.stderr.toString() + "\n";
+                    rawOutput += error.stderr.toString() + "\n";
                 }
                 if (error.stdout) {
-                    errorMessage += error.stdout.toString() + "\n";
+                    rawOutput += error.stdout.toString() + "\n";
                 }
-                console.log(errorMessage);
+                // Log full output for debugging
+                console.log("Full error output:");
+                console.log(rawOutput);
+                
+                // Parse and throw a human-readable error message
+                const errorMessage = parseErrors ? parseTerraformError(rawOutput) : rawOutput;
                 throw Error(errorMessage);
             } else {
                 console.log("Error object was null");

@@ -1,0 +1,4 @@
+Error: Provider configuration not found
+
+To work with module.pr.aws_ecs_cluster.main its original provider configuration at
+provider["registry.terraform.io/hashicorp/aws"].west is required, but it has been removed.

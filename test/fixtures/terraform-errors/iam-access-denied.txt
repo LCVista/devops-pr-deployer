@@ -1,0 +1,7 @@
+module.pr.aws_iam_role.deployment_role: Creating...
+
+Error: error creating IAM Role (my-role): AccessDenied: User is not authorized to perform: iam:CreateRole
+
+  with aws_iam_role.example,
+  on main.tf line 5, in resource "aws_iam_role" "example":
+   5: resource "aws_iam_role" "example" {
