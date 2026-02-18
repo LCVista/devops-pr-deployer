@@ -10,9 +10,14 @@ Available commands:
     
 * /deploy [database] [env_var1=value1 env_var2=value2 ...]
 * /destroy
+* /sync-jurisdictions <jurisdiction>
 * /help
 
 Environment variables persist between runs, so if the only thing that's changed is the build you can run "/deploy"
+
+**Sync Jurisdictions:**
+The /sync-jurisdictions command runs the sync_jurisdictions management command against the deployed tenant.
+Requires a prior /deploy to be completed successfully.
 
 These variables are calculated and provided by the tool:
 

@@ -6,6 +6,7 @@ import {handlePrClosed} from "./pr_closed";
 import { TerraformBackend } from "./types";
 import { TFVARS_FILENAME, TerraformS3Api } from "./s3_backend_api";
 import { BACKEND_CONFIG_FILE } from "./tfc_cli";
+import { createEcsRunner } from "./ecs_runner";
 
 export async function handleSlashCommand(
     tfcApi: TerraformBackend,
@@ -110,9 +111,89 @@ export async function handleSlashCommand(
         await githubHelper.addReaction(commentId, "rocket");
         return;
 
+    } else if (firstLine.startsWith('/sync-jurisdictions')) {
+        console.log("Received /sync-jurisdictions command");
+        await githubHelper.addReaction(commentId, "eyes");
+        await handleSyncJurisdictions(tfcCli, githubHelper, commentId, firstLine);
+        return;
+
     } else {
         console.debug('Unknown command')
         return;
+    }
+}
+
+async function handleSyncJurisdictions(
+    tfcCli: TerraformCli,
+    githubHelper: GithubHelper,
+    commentId: number,
+    commandLine: string
+) {
+    // Extract jurisdiction from command: /sync-jurisdictions <jurisdiction>
+    const parts = commandLine.trim().split(/\s+/);
+    if (parts.length < 2) {
+        throw new Error("Usage: /sync-jurisdictions <jurisdiction>\n\nPlease specify a jurisdiction to sync.");
+    }
+    const jurisdiction = parts[1];
+
+    // Initialize terraform to check deployment state
+    tfcCli.tfInit();
+
+    // Check if deployment exists by checking terraform state
+    const stateOutput = tfcCli.tfShow();
+    if (stateOutput.includes("No resources are represented") || 
+        stateOutput.includes("The state file is empty") ||
+        stateOutput.includes("No state")) {
+        throw new Error(
+            "No deployment found for this PR.\n\n" +
+            "Please run `/deploy` first to create the environment before syncing jurisdictions."
+        );
+    }
+
+    // Get environment details from terraform outputs
+    let environmentName: string;
+    let dbName: string;
+    try {
+        environmentName = tfcCli.tfOutputOneVariable("environment_name");
+        dbName = tfcCli.tfOutputOneVariable("db_name");
+    } catch (e) {
+        throw new Error(
+            "Could not retrieve deployment details.\n\n" +
+            "The deployment may be incomplete or in progress. Please wait for /deploy to complete and try again."
+        );
+    }
+
+    console.log(`Running sync_jurisdictions for jurisdiction '${jurisdiction}' on tenant '${dbName}' in environment '${environmentName}'`);
+
+    // Create ECS runner and run the sync_jurisdictions command
+    const ecsRunner = createEcsRunner(environmentName);
+    const command = [
+        "./entrypoint.sh",
+        "management",
+        "sync_jurisdictions",
+        jurisdiction,
+        "--tenant",
+        dbName
+    ];
+
+    await githubHelper.addComment(
+        `Starting jurisdiction sync for **${jurisdiction}** on tenant **${dbName}**...\n\n` +
+        `This may take a few minutes.`
+    );
+
+    const result = await ecsRunner.runCommand(command, environmentName);
+
+    if (result.success) {
+        await githubHelper.addComment(
+            `✅ Successfully synced jurisdiction **${jurisdiction}** on tenant **${dbName}**\n\n` +
+            `[View CloudWatch Logs](${result.cloudwatchUrl})`
+        );
+        await githubHelper.addReaction(commentId, "rocket");
+    } else {
+        throw new Error(
+            `Jurisdiction sync failed with exit code ${result.exitCode}\n\n` +
+            `[View CloudWatch Logs for details](${result.cloudwatchUrl})`
+        );
     }
 }
 
