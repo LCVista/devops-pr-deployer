@@ -158,10 +158,10 @@ async function handleSyncJurisdictions(
     let dbName: string;
     let ecsTaskConfig: TerraformEcsTaskConfig;
     try {
-        environmentName = tfcCli.tfOutputOneVariable("environment_name");
-        dbName = tfcCli.tfOutputOneVariable("db_name");
-        const ecsTaskConfigJson = tfcCli.tfOutputOneVariable("ecs_task_config");
-        ecsTaskConfig = JSON.parse(ecsTaskConfigJson);
+        const outputs = tfcCli.tfOutputJson();
+        environmentName = outputs.environment_name.value;
+        dbName = outputs.db_name.value;
+        ecsTaskConfig = outputs.ecs_task_config.value;
         console.log(`Retrieved environment details from terraform outputs: environmentName=${environmentName}, dbName=${dbName}, ecsTaskConfig=${JSON.stringify(ecsTaskConfig)}`);
     } catch (e) {
         throw new Error(
