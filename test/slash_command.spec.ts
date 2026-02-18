@@ -49,6 +49,13 @@ let mockExec = jest.fn( (cmd: string): Buffer => {
         return new Buffer("init");
     } else if (cmd.indexOf("plan") >= 0){
         return new Buffer("plan applied");
+    } else if (cmd.indexOf("output") >= 0 && cmd.indexOf("-json") >= 0) {
+        return new Buffer(JSON.stringify({
+            preview_url: { value: ":::environment created:::", type: "string" },
+            logs: { value: "https://logs.example.com", type: "string" },
+            environment_name: { value: "test-env", type: "string" },
+            environment_variables: { value: { git_branch: "test-branch" }, type: ["map", "string"] }
+        }));
     } else if (cmd.indexOf("output") >= 0) {
         return new Buffer(":::environment created:::");
     } else if (cmd.indexOf("show") >= 0) {

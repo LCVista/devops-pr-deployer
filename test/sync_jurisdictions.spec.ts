@@ -60,12 +60,12 @@ const noManagementRoleEcsTaskConfig = {
 let mockExec = jest.fn((cmd: string): Buffer => {
     if (cmd.indexOf("init") >= 0) {
         return Buffer.from("init");
-    } else if (cmd.indexOf("output") >= 0 && cmd.indexOf("environment_name") >= 0) {
-        return Buffer.from("j-testbranc");
-    } else if (cmd.indexOf("output") >= 0 && cmd.indexOf("db_name") >= 0) {
-        return Buffer.from("weaver");
-    } else if (cmd.indexOf("output") >= 0 && cmd.indexOf("ecs_task_config") >= 0) {
-        return Buffer.from(JSON.stringify(validEcsTaskConfig));
+    } else if (cmd.indexOf("output") >= 0 && cmd.indexOf("-json") >= 0) {
+        return Buffer.from(JSON.stringify({
+            environment_name: { value: "j-testbranc", type: "string" },
+            db_name: { value: "weaver", type: "string" },
+            ecs_task_config: { value: validEcsTaskConfig, type: "object" }
+        }));
     } else if (cmd.indexOf("output") >= 0) {
         return Buffer.from("output");
     } else {
@@ -88,12 +88,12 @@ let mockExecNoDeployment = jest.fn((cmd: string): Buffer => {
 let mockExecNoManagementRole = jest.fn((cmd: string): Buffer => {
     if (cmd.indexOf("init") >= 0) {
         return Buffer.from("init");
-    } else if (cmd.indexOf("output") >= 0 && cmd.indexOf("environment_name") >= 0) {
-        return Buffer.from("j-testbranc");
-    } else if (cmd.indexOf("output") >= 0 && cmd.indexOf("db_name") >= 0) {
-        return Buffer.from("weaver");
-    } else if (cmd.indexOf("output") >= 0 && cmd.indexOf("ecs_task_config") >= 0) {
-        return Buffer.from(JSON.stringify(noManagementRoleEcsTaskConfig));
+    } else if (cmd.indexOf("output") >= 0 && cmd.indexOf("-json") >= 0) {
+        return Buffer.from(JSON.stringify({
+            environment_name: { value: "j-testbranc", type: "string" },
+            db_name: { value: "weaver", type: "string" },
+            ecs_task_config: { value: noManagementRoleEcsTaskConfig, type: "object" }
+        }));
     } else if (cmd.indexOf("output") >= 0) {
         return Buffer.from("output");
     } else {
@@ -200,11 +200,7 @@ describe('Sync Jurisdictions', () => {
         // Assert terraform commands
         expect(mockExec.mock.calls[0][0]).toContain("terraform init");
         expect(mockExec.mock.calls[1][0]).toContain("terraform output");
-        expect(mockExec.mock.calls[1][0]).toContain("environment_name");
-        expect(mockExec.mock.calls[2][0]).toContain("terraform output");
-        expect(mockExec.mock.calls[2][0]).toContain("db_name");
-        expect(mockExec.mock.calls[3][0]).toContain("terraform output");
-        expect(mockExec.mock.calls[3][0]).toContain("ecs_task_config");
+        expect(mockExec.mock.calls[1][0]).toContain("-json");
 
         // Assert ECS runner was called with correct config from terraform
         expect(createEcsRunnerFromTerraform).toHaveBeenCalledWith(validEcsTaskConfig);
