@@ -6,6 +6,7 @@ import {handlePrClosed} from "./pr_closed";
 import { TerraformBackend } from "./types";
 import { TFVARS_FILENAME, TerraformS3Api } from "./s3_backend_api";
 import { BACKEND_CONFIG_FILE } from "./tfc_cli";
+import { createEcsRunnerFromTerraform, TerraformEcsTaskConfig } from "./ecs_runner";
 
 export async function handleSlashCommand(
     tfcApi: TerraformBackend,
@@ -110,9 +111,97 @@ export async function handleSlashCommand(
         await githubHelper.addReaction(commentId, "rocket");
         return;
 
+    } else if (firstLine.startsWith('/sync-jurisdictions')) {
+        console.log("Received /sync-jurisdictions command");
+        await githubHelper.addReaction(commentId, "eyes");
+        await handleSyncJurisdictions(tfcCli, githubHelper, commentId, firstLine);
+        return;
+
     } else {
         console.debug('Unknown command')
         return;
+    }
+}
+
+async function handleSyncJurisdictions(
+    tfcCli: TerraformCli,
+    githubHelper: GithubHelper,
+    commentId: number,
+    commandLine: string
+) {
+    // Extract required jurisdiction directories from command: /sync-jurisdictions <dir1> [dir2] [dir3] ...
+    const parts = commandLine.trim().split(/\s+/);
+    const jurisdictionDirectories = parts.slice(1);
+
+    if (jurisdictionDirectories.length === 0) {
+        throw new Error(
+            "Missing required jurisdiction directory.\n\n" +
+            "Usage: `/sync-jurisdictions <jurisdiction_directory> [additional_directories...]`\n\n" +
+            "Examples:\n" +
+            "  `/sync-jurisdictions default`\n" +
+            "  `/sync-jurisdictions default/texas`\n" +
+            "  `/sync-jurisdictions default new-york-cle`"
+        );
+    }
+
+    // Initialize terraform to check deployment state
+    tfcCli.tfInit();
+
+    // Get environment details and ECS config from terraform outputs
+    let environmentName: string;
+    let dbName: string;
+    let ecsTaskConfig: TerraformEcsTaskConfig;
+    try {
+        environmentName = tfcCli.tfOutputOneVariable("environment_name");
+        dbName = tfcCli.tfOutputOneVariable("db_name");
+        const ecsTaskConfigJson = tfcCli.tfOutputOneVariable("ecs_task_config");
+        ecsTaskConfig = JSON.parse(ecsTaskConfigJson);
+        console.log(`Retrieved environment details from terraform outputs: environmentName=${environmentName}, dbName=${dbName}, ecsTaskConfig=${JSON.stringify(ecsTaskConfig)}`);
+    } catch (e) {
+        throw new Error(
+            "Could not retrieve deployment details.\n\n" +
+            "No deployment found or deployment may be incomplete. Please run `/deploy` first and wait for it to complete."
+        );
+    }
+
+    // Check if management role infrastructure exists (required for running ECS tasks)
+    if (!ecsTaskConfig.management_role_enabled || !ecsTaskConfig.task_definition) {
+        throw new Error(
+            "Management role infrastructure not found.\n\n" +
+            "The `/sync-jurisdictions` command requires the management role to be deployed.\n\n" +
+            "Please redeploy with:\n```\n/deploy include_management_role=true\n```"
+        );
+    }
+
+    // Create ECS runner from terraform config
+    const ecsRunner = createEcsRunnerFromTerraform(ecsTaskConfig);
+
+    const directoriesDisplay = jurisdictionDirectories.join(', ');
+    console.log(`Running sync_jurisdictions for jurisdiction directories '${directoriesDisplay}' on tenant '${dbName}' in environment '${environmentName}'`);
+    const command = [
+        "./entrypoint.sh",
+        "execute-command",
+        "sync_jurisdictions",
+        dbName,
+        ...jurisdictionDirectories,
+    ];
+
+    await githubHelper.addComment(
+        `Starting jurisdiction sync for **${directoriesDisplay}** on tenant **${dbName}**...\n\nThis may take a few minutes.`
+    );
+
+    const result = await ecsRunner.runCommand(command, environmentName);
+
+    if (result.success) {
+        await githubHelper.addComment(
+            `✅ Successfully synced jurisdiction ${jurisdictionDirectories.length === 1 ? 'directory' : 'directories'} **${directoriesDisplay}** on tenant **${dbName}**\n\n[View CloudWatch Logs](${result.cloudwatchUrl})`
+        );
+        await githubHelper.addReaction(commentId, "rocket");
+    } else {
+        throw new Error(
+            `Jurisdiction sync failed with exit code ${result.exitCode}\n\n` +
+            `[View CloudWatch Logs](${result.cloudwatchUrl})`
+        );
     }
 }
 
