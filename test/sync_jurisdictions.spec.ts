@@ -210,7 +210,7 @@ describe('Sync Jurisdictions', () => {
         expect(createEcsRunnerFromTerraform).toHaveBeenCalledWith(validEcsTaskConfig);
         const mockRunner = (createEcsRunnerFromTerraform as jest.Mock).mock.results[0].value;
         expect(mockRunner.runCommand).toHaveBeenCalledWith(
-            ["./entrypoint.sh", "execute-command", "sync_jurisdictions", "weaver", "texas"],
+            ["./entrypoint.sh", "execute-command", "sync_jurisdictions", "texas"],
             "j-testbranc"
         );
 
@@ -248,7 +248,7 @@ describe('Sync Jurisdictions', () => {
         expect(createEcsRunnerFromTerraform).not.toHaveBeenCalled();
     });
 
-    test('handle /sync-jurisdictions without jurisdiction uses sync_jurisdictions_one_tenant', async () => {
+    test('handle /sync-jurisdictions without jurisdiction directory throws error', async () => {
         const mockedTfS3Api = await TerraformS3Api.build(
             "test_workspace",
             "test-s3-bucket",
@@ -262,25 +262,17 @@ describe('Sync Jurisdictions', () => {
         const command = "/sync-jurisdictions";
         const commentId = 534;
 
-        await handleSlashCommand(
+        await expect(handleSlashCommand(
             mockedTfS3Api,
             mockedTerraformCli,
             mockedGithubHelper,
             prInfo,
             commentId,
             command
-        );
+        )).rejects.toThrow("Missing required jurisdiction directory");
 
-        // Assert ECS runner was called with sync_jurisdictions_one_tenant command
-        expect(createEcsRunnerFromTerraform).toHaveBeenCalledWith(validEcsTaskConfig);
-        const mockRunner = (createEcsRunnerFromTerraform as jest.Mock).mock.results[0].value;
-        expect(mockRunner.runCommand).toHaveBeenCalledWith(
-            ["./entrypoint.sh", "execute-command", "sync_jurisdictions_one_tenant", "weaver"],
-            "j-testbranc"
-        );
-
-        // Assert success message mentions "all configured jurisdiction directories"
-        expect(mockOctokit.rest.issues.createComment.mock.calls[1][0].body).toContain("all configured jurisdiction directories");
+        // Assert ECS runner was NOT called
+        expect(createEcsRunnerFromTerraform).not.toHaveBeenCalled();
     });
 
     test('handle /sync-jurisdictions with ECS task failure', async () => {

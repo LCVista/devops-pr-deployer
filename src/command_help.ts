@@ -10,15 +10,16 @@ Available commands:
     
 * /deploy [database] [env_var1=value1 env_var2=value2 ...]
 * /destroy
-* /sync-jurisdictions [jurisdiction_directory]
+* /sync-jurisdictions <jurisdiction_directory> [additional_directories...]
 * /help
 
 Environment variables persist between runs, so if the only thing that's changed is the build you can run "/deploy"
 
 **Sync Jurisdictions:**
-The /sync-jurisdictions command runs jurisdiction sync against the deployed tenant.
-- Without a jurisdiction directory: syncs all jurisdiction directories configured for the tenant (uses sync_jurisdictions_one_tenant)
-- With a jurisdiction directory: syncs only the specified jurisdiction directory (uses sync_jurisdictions)
+The /sync-jurisdictions command runs sync_jurisdictions against the deployed tenant.
+- Requires at least one jurisdiction directory
+- Multiple directories can be specified, separated by spaces
+- Examples: \`/sync-jurisdictions default\` or \`/sync-jurisdictions default new-york-cle\`
 
 Requires a prior /deploy with include_management_role=true to be completed successfully.
 
