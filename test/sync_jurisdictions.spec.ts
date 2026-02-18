@@ -208,6 +208,11 @@ describe('Sync Jurisdictions', () => {
 
         // Assert ECS runner was called with correct config from terraform
         expect(createEcsRunnerFromTerraform).toHaveBeenCalledWith(validEcsTaskConfig);
+        const mockRunner = (createEcsRunnerFromTerraform as jest.Mock).mock.results[0].value;
+        expect(mockRunner.runCommand).toHaveBeenCalledWith(
+            ["./entrypoint.sh", "management", "sync_jurisdictions", "texas", "--tenant", "weaver"],
+            "j-testbranc"
+        );
 
         // Assert comments
         expect(mockOctokit.rest.issues.createComment.mock.calls.length).toBe(2);
@@ -243,7 +248,7 @@ describe('Sync Jurisdictions', () => {
         expect(createEcsRunnerFromTerraform).not.toHaveBeenCalled();
     });
 
-    test('handle /sync-jurisdictions without jurisdiction parameter shows error', async () => {
+    test('handle /sync-jurisdictions without jurisdiction uses sync_jurisdictions_one_tenant', async () => {
         const mockedTfS3Api = await TerraformS3Api.build(
             "test_workspace",
             "test-s3-bucket",
@@ -257,14 +262,25 @@ describe('Sync Jurisdictions', () => {
         const command = "/sync-jurisdictions";
         const commentId = 534;
 
-        await expect(handleSlashCommand(
+        await handleSlashCommand(
             mockedTfS3Api,
             mockedTerraformCli,
             mockedGithubHelper,
             prInfo,
             commentId,
             command
-        )).rejects.toThrow("Usage: /sync-jurisdictions <jurisdiction>");
+        );
+
+        // Assert ECS runner was called with sync_jurisdictions_one_tenant command
+        expect(createEcsRunnerFromTerraform).toHaveBeenCalledWith(validEcsTaskConfig);
+        const mockRunner = (createEcsRunnerFromTerraform as jest.Mock).mock.results[0].value;
+        expect(mockRunner.runCommand).toHaveBeenCalledWith(
+            ["./entrypoint.sh", "management", "sync_jurisdictions_one_tenant", "weaver"],
+            "j-testbranc"
+        );
+
+        // Assert success message mentions "all configured jurisdictions"
+        expect(mockOctokit.rest.issues.createComment.mock.calls[1][0].body).toContain("all configured jurisdictions");
     });
 
     test('handle /sync-jurisdictions with ECS task failure', async () => {
