@@ -63,7 +63,15 @@ export class EcsRunner {
             maxResults: 1
         });
         console.log(`Sending ListTaskDefinitionsCommand...`);
-        const taskDefinitions = await this.ecsClient.send(listDefinitionsCommand);
+        let taskDefinitions;
+        try {
+            taskDefinitions = await this.ecsClient.send(listDefinitionsCommand);
+        } catch (e: any) {
+            console.log(`Error calling ECS ListTaskDefinitions: ${e?.message || e}`);
+            console.log(`Error name: ${e?.name}`);
+            console.log(`Error stack: ${e?.stack}`);
+            throw e;
+        }
         console.log(`ListTaskDefinitionsCommand response: ${JSON.stringify(taskDefinitions.taskDefinitionArns)}`);
 
         if (taskDefinitions.taskDefinitionArns === undefined || taskDefinitions.taskDefinitionArns.length === 0) {
@@ -94,7 +102,15 @@ export class EcsRunner {
         };
 
         const runTaskCommand = new RunTaskCommand(runTaskInput);
-        const runTaskResult = await this.ecsClient.send(runTaskCommand);
+        let runTaskResult;
+        try {
+            runTaskResult = await this.ecsClient.send(runTaskCommand);
+        } catch (e: any) {
+            console.log(`Error calling ECS RunTask: ${e?.message || e}`);
+            console.log(`Error name: ${e?.name}`);
+            console.log(`Error stack: ${e?.stack}`);
+            throw e;
+        }
 
         if (runTaskResult.failures && runTaskResult.failures.length > 0) {
             console.log("Failed to start task: ", runTaskResult.failures);
@@ -116,7 +132,15 @@ export class EcsRunner {
             tasks: [taskArn]
         });
         console.log(`Checking status on task ${taskArn}`);
-        const describeTaskResult = await this.ecsClient.send(describeTaskCommand);
+        let describeTaskResult;
+        try {
+            describeTaskResult = await this.ecsClient.send(describeTaskCommand);
+        } catch (e: any) {
+            console.log(`Error calling ECS DescribeTasks: ${e?.message || e}`);
+            console.log(`Error name: ${e?.name}`);
+            console.log(`Error stack: ${e?.stack}`);
+            throw e;
+        }
 
         if (describeTaskResult.failures && describeTaskResult.failures.length > 0) {
             console.log("Describe Task had failures");
