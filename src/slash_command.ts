@@ -150,6 +150,15 @@ async function handleSyncJurisdictions(
         );
     }
 
+    // Check if management role infrastructure exists (required for running ECS tasks)
+    if (!stateOutput.includes("lcv_management_task") && !stateOutput.includes("management-task")) {
+        throw new Error(
+            "Management role infrastructure not found.\n\n" +
+            "The `/sync-jurisdictions` command requires the management role to be deployed.\n\n" +
+            "Please redeploy with:\n```\n/deploy include_management_role=true\n```"
+        );
+    }
+
     // Get environment details from terraform outputs
     let environmentName: string;
     let dbName: string;

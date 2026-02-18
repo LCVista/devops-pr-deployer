@@ -41,11 +41,15 @@ let mockExec = jest.fn((cmd: string): Buffer => {
     if (cmd.indexOf("init") >= 0) {
         return Buffer.from("init");
     } else if (cmd.indexOf("show") >= 0) {
-        // Return state with resources to indicate deployment exists
+        // Return state with resources including management task
         return Buffer.from(`
 # module.pr.aws_ecs_service.lcv_web_service:
 resource "aws_ecs_service" "lcv_web_service" {
     id = "arn:aws:ecs:us-west-2:123456789:service/dev-cluster/lcv-web-service-test"
+}
+# module.pr.module.lcv.aws_ecs_task_definition.lcv_management_task:
+resource "aws_ecs_task_definition" "lcv_management_task" {
+    family = "lcv-management-task-j-testbranc"
 }
         `);
     } else if (cmd.indexOf("output") >= 0 && cmd.indexOf("environment_name") >= 0) {
@@ -65,6 +69,25 @@ let mockExecNoDeployment = jest.fn((cmd: string): Buffer => {
         return Buffer.from("init");
     } else if (cmd.indexOf("show") >= 0) {
         return Buffer.from("The state file is empty. No resources are represented.");
+    } else {
+        return Buffer.from("succeeded");
+    }
+});
+
+// Mock exec that returns deployment WITHOUT management role
+let mockExecNoManagementRole = jest.fn((cmd: string): Buffer => {
+    if (cmd.indexOf("init") >= 0) {
+        return Buffer.from("init");
+    } else if (cmd.indexOf("show") >= 0) {
+        // Return state with web service but NO management task
+        return Buffer.from(`
+# module.pr.aws_ecs_service.lcv_web_service:
+resource "aws_ecs_service" "lcv_web_service" {
+    id = "arn:aws:ecs:us-west-2:123456789:service/dev-cluster/lcv-web-service-test"
+}
+        `);
+    } else if (cmd.indexOf("output") >= 0) {
+        return Buffer.from("output");
     } else {
         return Buffer.from("succeeded");
     }
@@ -267,5 +290,32 @@ describe('Sync Jurisdictions', () => {
             commentId,
             command
         )).rejects.toThrow("Jurisdiction sync failed with exit code 1");
+    });
+
+    test('handle /sync-jurisdictions without management role shows error', async () => {
+        const mockedTfS3Api = await TerraformS3Api.build(
+            "test_workspace",
+            "test-s3-bucket",
+        );
+        const mockedTerraformCli = new TerraformCli(mockedTfS3Api, mockExecNoManagementRole);
+
+        const prInfo: PullRequestInfo = {
+            branch: "test-branch",
+            sha1: "abc1234"
+        };
+        const command = "/sync-jurisdictions texas";
+        const commentId = 534;
+
+        await expect(handleSlashCommand(
+            mockedTfS3Api,
+            mockedTerraformCli,
+            mockedGithubHelper,
+            prInfo,
+            commentId,
+            command
+        )).rejects.toThrow("include_management_role=true");
+
+        // Assert ECS runner was NOT called
+        expect(createEcsRunner).not.toHaveBeenCalled();
     });
 });
