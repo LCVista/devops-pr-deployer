@@ -210,7 +210,7 @@ describe('Sync Jurisdictions', () => {
         expect(createEcsRunnerFromTerraform).toHaveBeenCalledWith(validEcsTaskConfig);
         const mockRunner = (createEcsRunnerFromTerraform as jest.Mock).mock.results[0].value;
         expect(mockRunner.runCommand).toHaveBeenCalledWith(
-            ["./entrypoint.sh", "management", "sync_jurisdictions", "texas", "--tenant", "weaver"],
+            ["./entrypoint.sh", "execute-command", "sync_jurisdictions", "texas", "--tenant", "weaver"],
             "j-testbranc"
         );
 
@@ -275,7 +275,7 @@ describe('Sync Jurisdictions', () => {
         expect(createEcsRunnerFromTerraform).toHaveBeenCalledWith(validEcsTaskConfig);
         const mockRunner = (createEcsRunnerFromTerraform as jest.Mock).mock.results[0].value;
         expect(mockRunner.runCommand).toHaveBeenCalledWith(
-            ["./entrypoint.sh", "management", "sync_jurisdictions_one_tenant", "weaver"],
+            ["./entrypoint.sh", "execute-command", "sync_jurisdictions_one_tenant", "weaver"],
             "j-testbranc"
         );
 

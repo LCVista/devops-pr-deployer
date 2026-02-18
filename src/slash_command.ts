@@ -172,7 +172,7 @@ async function handleSyncJurisdictions(
         console.log(`Running sync_jurisdictions for jurisdiction '${jurisdiction}' on tenant '${dbName}' in environment '${environmentName}'`);
         command = [
             "./entrypoint.sh",
-            "management",
+            "execute-command",
             "sync_jurisdictions",
             jurisdiction,
             "--tenant",
@@ -184,7 +184,7 @@ async function handleSyncJurisdictions(
         console.log(`Running sync_jurisdictions_one_tenant for tenant '${dbName}' in environment '${environmentName}'`);
         command = [
             "./entrypoint.sh",
-            "management",
+            "execute-command",
             "sync_jurisdictions_one_tenant",
             dbName
         ];
