@@ -174,9 +174,8 @@ async function handleSyncJurisdictions(
             "./entrypoint.sh",
             "execute-command",
             "sync_jurisdictions",
+            dbName,
             jurisdiction,
-            "--tenant",
-            dbName
         ];
         startMessage = `Starting jurisdiction sync for **${jurisdiction}** on tenant **${dbName}**...\n\nThis may take a few minutes.`;
     } else {
@@ -186,7 +185,7 @@ async function handleSyncJurisdictions(
             "./entrypoint.sh",
             "execute-command",
             "sync_jurisdictions_one_tenant",
-            dbName
+            dbName,
         ];
         startMessage = `Starting jurisdiction sync for **all configured jurisdictions** on tenant **${dbName}**...\n\nThis may take a few minutes.`;
     }
