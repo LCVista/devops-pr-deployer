@@ -279,8 +279,8 @@ describe('Sync Jurisdictions', () => {
             "j-testbranc"
         );
 
-        // Assert success message mentions "all configured jurisdictions"
-        expect(mockOctokit.rest.issues.createComment.mock.calls[1][0].body).toContain("all configured jurisdictions");
+        // Assert success message mentions "all configured jurisdiction directories"
+        expect(mockOctokit.rest.issues.createComment.mock.calls[1][0].body).toContain("all configured jurisdiction directories");
     });
 
     test('handle /sync-jurisdictions with ECS task failure', async () => {
