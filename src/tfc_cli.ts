@@ -70,6 +70,11 @@ export class TerraformCli {
         return this.__exec('terraform output -no-color');
     }
 
+    public tfOutputJson(): Record<string, { value: any; type: any }> {
+        const output = this.__exec('terraform output -json -no-color');
+        return JSON.parse(output);
+    }
+
     public tfOutputOneVariable(variableName: string): string {
 
         return this.__exec(`terraform output -no-color --raw ${variableName}`);

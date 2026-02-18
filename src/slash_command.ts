@@ -99,13 +99,19 @@ export async function handleSlashCommand(
         // apply the plan
         tfcCli.tfApply()
 
-        let previewUrl = tfcCli.tfOutputOneVariable("preview_url");
-        let output = tfcCli.tfOutput();
+        const outputs = tfcCli.tfOutputJson();
+        console.log("Terraform outputs:", JSON.stringify(outputs, null, 2));
+
+        const previewUrl = outputs.preview_url.value;
+        const logsUrl = outputs.logs.value;
+        const environmentName = outputs.environment_name.value;
+        const environmentVariables = JSON.stringify(outputs.environment_variables.value);
         await githubHelper.addComment(
-            `Environment is ready at [${previewUrl}](${previewUrl})` +
-            "\n\n" +
-            "```" +
-            output +
+            `Environment is ready at [${previewUrl}](${previewUrl})\n\n` +
+            `[View logs](${logsUrl})\n\n` +
+            "```\n" +
+            `environment_name = "${environmentName}"\n` +
+            `environment_variables = ${environmentVariables}\n` +
             "```"
         );
         await githubHelper.addReaction(commentId, "rocket");
@@ -159,7 +165,6 @@ async function handleSyncJurisdictions(
         console.log(`Retrieved environment details from terraform outputs: environmentName=${environmentName}, dbName=${dbName}, ecsTaskConfig=${JSON.stringify(ecsTaskConfig)}`);
     } catch (e) {
         throw new Error(
-            "Could not retrieve deployment details.\n\n" +
             "No deployment found or deployment may be incomplete. Please run `/deploy` first and wait for it to complete."
         );
     }
