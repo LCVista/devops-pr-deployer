@@ -105,14 +105,14 @@ export async function handleSlashCommand(
         const previewUrl = outputs.preview_url.value;
         const logsUrl = outputs.logs.value;
         const environmentName = outputs.environment_name.value;
-        const environmentVariables = JSON.stringify(outputs.environment_variables.value);
+        const environmentVariables = JSON.stringify(outputs.environment_variables.value, null, 2);
         await githubHelper.addComment(
             `Environment is ready at [${previewUrl}](${previewUrl})\n\n` +
-            `[View logs](${logsUrl})\n\n` +
             "```\n" +
             `environment_name = "${environmentName}"\n` +
             `environment_variables = ${environmentVariables}\n` +
-            "```"
+            "```\n\n" +
+            `[View logs](${logsUrl})`
         );
         await githubHelper.addReaction(commentId, "rocket");
         return;
