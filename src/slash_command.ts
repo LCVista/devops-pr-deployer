@@ -182,6 +182,7 @@ async function handleSyncJurisdictions(
         "./entrypoint.sh",
         "execute-command",
         "sync_jurisdictions",
+        dbName,
         ...jurisdictionDirectories,
     ];
 
