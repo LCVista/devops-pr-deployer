@@ -56,12 +56,15 @@ export class EcsRunner {
     }
 
     private async getLatestTaskDefinition(): Promise<string> {
+        console.log(`Looking up task definition with family prefix: ${this.config.taskDefinition}`);
         const listDefinitionsCommand = new ListTaskDefinitionsCommand({
             familyPrefix: this.config.taskDefinition,
             sort: SortOrder.DESC,
             maxResults: 1
         });
+        console.log(`Sending ListTaskDefinitionsCommand...`);
         const taskDefinitions = await this.ecsClient.send(listDefinitionsCommand);
+        console.log(`ListTaskDefinitionsCommand response: ${JSON.stringify(taskDefinitions.taskDefinitionArns)}`);
 
         if (taskDefinitions.taskDefinitionArns === undefined || taskDefinitions.taskDefinitionArns.length === 0) {
             throw Error(`Task definition ${this.config.taskDefinition} not found. Make sure the deployment includes the management role (include_management_role=true).`);
@@ -176,7 +179,9 @@ export class EcsRunner {
                             cloudwatchUrl: cloudwatchUrl
                         });
                     }
-                } catch (e) {
+                } catch (e: any) {
+                    console.log(`Error checking task status: ${e?.message || e}`);
+                    console.log(`Error stack: ${e?.stack || 'no stack'}`);
                     clearInterval(intervalId);
                     reject(e);
                 }
