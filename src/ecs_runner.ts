@@ -20,6 +20,19 @@ export interface EcsRunnerConfig {
     container: string;
 }
 
+/**
+ * Configuration from terraform output "ecs_task_config"
+ * This is the structure exported by aws-infrastructure/modules/lcv-dev-env
+ */
+export interface TerraformEcsTaskConfig {
+    cluster_name: string;
+    task_definition: string | null;
+    container_name: string;
+    subnets: string[];
+    security_groups: string[];
+    management_role_enabled: boolean;
+}
+
 export interface EcsRunResult {
     success: boolean;
     exitCode: number;
@@ -172,24 +185,22 @@ export class EcsRunner {
     }
 }
 
-// Default configuration for dev environment
-export const DEV_ECS_CONFIG = {
-    cluster: "dev-cluster",
-    container: "lcv-management-task",
-    // These are the public subnets in dev-vpc
-    subnets: [
-        "subnet-02ac5fd6e6b5a6ee7",
-        "subnet-0c0b36cd27d50b44b"
-    ],
-    // Security group for ECS tasks in dev environment
-    securityGroups: [
-        "sg-076f53c81e8d0bc9f"  // dev-cluster-ecs-tasks
-    ]
-};
+/**
+ * Create an EcsRunner from terraform ecs_task_config output.
+ * The terraform config uses snake_case, this converts to the internal config format.
+ *
+ * @throws Error if task_definition is null (management role not enabled)
+ */
+export function createEcsRunnerFromTerraform(terraformConfig: TerraformEcsTaskConfig, ecsClient?: ECSClient): EcsRunner {
+    if (!terraformConfig.task_definition) {
+        throw new Error("ECS task definition not available - management role may not be enabled");
+    }
 
-export function createEcsRunner(environmentName: string, ecsClient?: ECSClient): EcsRunner {
     return new EcsRunner({
-        ...DEV_ECS_CONFIG,
-        taskDefinition: `lcv-management-task-${environmentName}`
+        cluster: terraformConfig.cluster_name,
+        taskDefinition: terraformConfig.task_definition,
+        container: terraformConfig.container_name,
+        subnets: terraformConfig.subnets,
+        securityGroups: terraformConfig.security_groups,
     }, ecsClient);
 }

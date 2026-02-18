@@ -6,7 +6,7 @@ import {handlePrClosed} from "./pr_closed";
 import { TerraformBackend } from "./types";
 import { TFVARS_FILENAME, TerraformS3Api } from "./s3_backend_api";
 import { BACKEND_CONFIG_FILE } from "./tfc_cli";
-import { createEcsRunner } from "./ecs_runner";
+import { createEcsRunnerFromTerraform, TerraformEcsTaskConfig } from "./ecs_runner";
 
 export async function handleSlashCommand(
     tfcApi: TerraformBackend,
@@ -139,19 +139,24 @@ async function handleSyncJurisdictions(
     // Initialize terraform to check deployment state
     tfcCli.tfInit();
 
-    // Check if deployment exists by checking terraform state
-    const stateOutput = tfcCli.tfShow();
-    if (stateOutput.includes("No resources are represented") || 
-        stateOutput.includes("The state file is empty") ||
-        stateOutput.includes("No state")) {
+    // Get environment details and ECS config from terraform outputs
+    let environmentName: string;
+    let dbName: string;
+    let ecsTaskConfig: TerraformEcsTaskConfig;
+    try {
+        environmentName = tfcCli.tfOutputOneVariable("environment_name");
+        dbName = tfcCli.tfOutputOneVariable("db_name");
+        const ecsTaskConfigJson = tfcCli.tfOutputOneVariable("ecs_task_config");
+        ecsTaskConfig = JSON.parse(ecsTaskConfigJson);
+    } catch (e) {
         throw new Error(
-            "No deployment found for this PR.\n\n" +
-            "Please run `/deploy` first to create the environment before syncing jurisdictions."
+            "Could not retrieve deployment details.\n\n" +
+            "No deployment found or deployment may be incomplete. Please run `/deploy` first and wait for it to complete."
         );
     }
 
     // Check if management role infrastructure exists (required for running ECS tasks)
-    if (!stateOutput.includes("lcv_management_task") && !stateOutput.includes("management-task")) {
+    if (!ecsTaskConfig.management_role_enabled || !ecsTaskConfig.task_definition) {
         throw new Error(
             "Management role infrastructure not found.\n\n" +
             "The `/sync-jurisdictions` command requires the management role to be deployed.\n\n" +
@@ -159,23 +164,10 @@ async function handleSyncJurisdictions(
         );
     }
 
-    // Get environment details from terraform outputs
-    let environmentName: string;
-    let dbName: string;
-    try {
-        environmentName = tfcCli.tfOutputOneVariable("environment_name");
-        dbName = tfcCli.tfOutputOneVariable("db_name");
-    } catch (e) {
-        throw new Error(
-            "Could not retrieve deployment details.\n\n" +
-            "The deployment may be incomplete or in progress. Please wait for /deploy to complete and try again."
-        );
-    }
-
     console.log(`Running sync_jurisdictions for jurisdiction '${jurisdiction}' on tenant '${dbName}' in environment '${environmentName}'`);
 
-    // Create ECS runner and run the sync_jurisdictions command
-    const ecsRunner = createEcsRunner(environmentName);
+    // Create ECS runner from terraform config and run the sync_jurisdictions command
+    const ecsRunner = createEcsRunnerFromTerraform(ecsTaskConfig);
     const command = [
         "./entrypoint.sh",
         "management",
@@ -201,7 +193,7 @@ async function handleSyncJurisdictions(
     } else {
         throw new Error(
             `Jurisdiction sync failed with exit code ${result.exitCode}\n\n` +
-            `[View CloudWatch Logs for details](${result.cloudwatchUrl})`
+            `[View CloudWatch Logs](${result.cloudwatchUrl})`
         );
     }
 }

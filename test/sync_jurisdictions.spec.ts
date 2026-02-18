@@ -13,7 +13,7 @@ jest.mock("../src/ecs_runner", () => {
     const originalModule = jest.requireActual("../src/ecs_runner");
     return {
         ...originalModule,
-        createEcsRunner: jest.fn().mockImplementation((environmentName: string) => ({
+        createEcsRunnerFromTerraform: jest.fn().mockImplementation((config) => ({
             runCommand: jest.fn().mockResolvedValue({
                 success: true,
                 exitCode: 0,
@@ -24,7 +24,7 @@ jest.mock("../src/ecs_runner", () => {
     };
 });
 
-import { createEcsRunner } from "../src/ecs_runner";
+import { createEcsRunnerFromTerraform } from "../src/ecs_runner";
 
 // Mock S3 client for TerraformS3Api
 const s3Mock = mockClient(S3Client);
@@ -36,26 +36,36 @@ const existingVarsJson = JSON.stringify({
     }
 });
 
+// ECS task config for successful deployment with management role
+const validEcsTaskConfig = {
+    cluster_name: "dev-cluster",
+    task_definition: "lcv-management-task-j-testbranc",
+    container_name: "lcv-management-task",
+    subnets: ["subnet-02ac5fd6e6b5a6ee7", "subnet-0c0b36cd27d50b44b"],
+    security_groups: ["sg-076f53c81e8d0bc9f"],
+    management_role_enabled: true
+};
+
+// ECS task config for deployment WITHOUT management role
+const noManagementRoleEcsTaskConfig = {
+    cluster_name: "dev-cluster",
+    task_definition: null,
+    container_name: "",
+    subnets: ["subnet-02ac5fd6e6b5a6ee7", "subnet-0c0b36cd27d50b44b"],
+    security_groups: ["sg-076f53c81e8d0bc9f"],
+    management_role_enabled: false
+};
+
 // Mock exec function for terraform commands
 let mockExec = jest.fn((cmd: string): Buffer => {
     if (cmd.indexOf("init") >= 0) {
         return Buffer.from("init");
-    } else if (cmd.indexOf("show") >= 0) {
-        // Return state with resources including management task
-        return Buffer.from(`
-# module.pr.aws_ecs_service.lcv_web_service:
-resource "aws_ecs_service" "lcv_web_service" {
-    id = "arn:aws:ecs:us-west-2:123456789:service/dev-cluster/lcv-web-service-test"
-}
-# module.pr.module.lcv.aws_ecs_task_definition.lcv_management_task:
-resource "aws_ecs_task_definition" "lcv_management_task" {
-    family = "lcv-management-task-j-testbranc"
-}
-        `);
     } else if (cmd.indexOf("output") >= 0 && cmd.indexOf("environment_name") >= 0) {
         return Buffer.from("j-testbranc");
     } else if (cmd.indexOf("output") >= 0 && cmd.indexOf("db_name") >= 0) {
         return Buffer.from("weaver");
+    } else if (cmd.indexOf("output") >= 0 && cmd.indexOf("ecs_task_config") >= 0) {
+        return Buffer.from(JSON.stringify(validEcsTaskConfig));
     } else if (cmd.indexOf("output") >= 0) {
         return Buffer.from("output");
     } else {
@@ -63,12 +73,12 @@ resource "aws_ecs_task_definition" "lcv_management_task" {
     }
 });
 
-// Mock exec that returns empty state (no deployment)
+// Mock exec that returns error for outputs (no deployment)
 let mockExecNoDeployment = jest.fn((cmd: string): Buffer => {
     if (cmd.indexOf("init") >= 0) {
         return Buffer.from("init");
-    } else if (cmd.indexOf("show") >= 0) {
-        return Buffer.from("The state file is empty. No resources are represented.");
+    } else if (cmd.indexOf("output") >= 0) {
+        throw new Error("No outputs found. The configuration has no outputs or the state is empty.");
     } else {
         return Buffer.from("succeeded");
     }
@@ -78,14 +88,12 @@ let mockExecNoDeployment = jest.fn((cmd: string): Buffer => {
 let mockExecNoManagementRole = jest.fn((cmd: string): Buffer => {
     if (cmd.indexOf("init") >= 0) {
         return Buffer.from("init");
-    } else if (cmd.indexOf("show") >= 0) {
-        // Return state with web service but NO management task
-        return Buffer.from(`
-# module.pr.aws_ecs_service.lcv_web_service:
-resource "aws_ecs_service" "lcv_web_service" {
-    id = "arn:aws:ecs:us-west-2:123456789:service/dev-cluster/lcv-web-service-test"
-}
-        `);
+    } else if (cmd.indexOf("output") >= 0 && cmd.indexOf("environment_name") >= 0) {
+        return Buffer.from("j-testbranc");
+    } else if (cmd.indexOf("output") >= 0 && cmd.indexOf("db_name") >= 0) {
+        return Buffer.from("weaver");
+    } else if (cmd.indexOf("output") >= 0 && cmd.indexOf("ecs_task_config") >= 0) {
+        return Buffer.from(JSON.stringify(noManagementRoleEcsTaskConfig));
     } else if (cmd.indexOf("output") >= 0) {
         return Buffer.from("output");
     } else {
@@ -148,8 +156,8 @@ beforeEach(() => {
         return { Body: sdkStreamMixin(stream) };
     });
 
-    // Reset the mock for createEcsRunner
-    (createEcsRunner as jest.Mock).mockImplementation((environmentName: string) => ({
+    // Reset the mock for createEcsRunnerFromTerraform
+    (createEcsRunnerFromTerraform as jest.Mock).mockImplementation((config) => ({
         runCommand: jest.fn().mockResolvedValue({
             success: true,
             exitCode: 0,
@@ -191,14 +199,15 @@ describe('Sync Jurisdictions', () => {
 
         // Assert terraform commands
         expect(mockExec.mock.calls[0][0]).toContain("terraform init");
-        expect(mockExec.mock.calls[1][0]).toContain("terraform show");
+        expect(mockExec.mock.calls[1][0]).toContain("terraform output");
+        expect(mockExec.mock.calls[1][0]).toContain("environment_name");
         expect(mockExec.mock.calls[2][0]).toContain("terraform output");
-        expect(mockExec.mock.calls[2][0]).toContain("environment_name");
+        expect(mockExec.mock.calls[2][0]).toContain("db_name");
         expect(mockExec.mock.calls[3][0]).toContain("terraform output");
-        expect(mockExec.mock.calls[3][0]).toContain("db_name");
+        expect(mockExec.mock.calls[3][0]).toContain("ecs_task_config");
 
-        // Assert ECS runner was called with correct parameters
-        expect(createEcsRunner).toHaveBeenCalledWith("j-testbranc");
+        // Assert ECS runner was called with correct config from terraform
+        expect(createEcsRunnerFromTerraform).toHaveBeenCalledWith(validEcsTaskConfig);
 
         // Assert comments
         expect(mockOctokit.rest.issues.createComment.mock.calls.length).toBe(2);
@@ -231,7 +240,7 @@ describe('Sync Jurisdictions', () => {
         )).rejects.toThrow("No deployment found");
 
         // Assert ECS runner was NOT called
-        expect(createEcsRunner).not.toHaveBeenCalled();
+        expect(createEcsRunnerFromTerraform).not.toHaveBeenCalled();
     });
 
     test('handle /sync-jurisdictions without jurisdiction parameter shows error', async () => {
@@ -260,7 +269,7 @@ describe('Sync Jurisdictions', () => {
 
     test('handle /sync-jurisdictions with ECS task failure', async () => {
         // Mock ECS runner to fail
-        (createEcsRunner as jest.Mock).mockImplementation((environmentName: string) => ({
+        (createEcsRunnerFromTerraform as jest.Mock).mockImplementation((config) => ({
             runCommand: jest.fn().mockResolvedValue({
                 success: false,
                 exitCode: 1,
@@ -316,6 +325,6 @@ describe('Sync Jurisdictions', () => {
         )).rejects.toThrow("include_management_role=true");
 
         // Assert ECS runner was NOT called
-        expect(createEcsRunner).not.toHaveBeenCalled();
+        expect(createEcsRunnerFromTerraform).not.toHaveBeenCalled();
     });
 });
