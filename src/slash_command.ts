@@ -129,9 +129,17 @@ async function handleSyncJurisdictions(
     commentId: number,
     commandLine: string
 ) {
-    // Extract optional jurisdiction directory from command: /sync-jurisdictions [jurisdiction_directory]
+    // Extract required jurisdiction directory from command: /sync-jurisdictions <jurisdiction_directory>
     const parts = commandLine.trim().split(/\s+/);
     const jurisdictionDirectory = parts.length >= 2 ? parts[1] : null;
+
+    if (!jurisdictionDirectory) {
+        throw new Error(
+            "Missing required jurisdiction directory.\n\n" +
+            "Usage: `/sync-jurisdictions <jurisdiction_directory>`\n\n" +
+            "Example: `/sync-jurisdictions texas`"
+        );
+    }
 
     // Initialize terraform to check deployment state
     tfcCli.tfInit();
@@ -164,42 +172,23 @@ async function handleSyncJurisdictions(
     // Create ECS runner from terraform config
     const ecsRunner = createEcsRunnerFromTerraform(ecsTaskConfig);
 
-    // Build command based on whether jurisdiction directory is specified
-    let command: string[];
-    let startMessage: string;
-    if (jurisdictionDirectory) {
-        // Specific jurisdiction directory: use sync_jurisdictions <jurisdiction_directory>
-        console.log(`Running sync_jurisdictions for jurisdiction directory '${jurisdictionDirectory}' on tenant '${dbName}' in environment '${environmentName}'`);
-        command = [
-            "./entrypoint.sh",
-            "execute-command",
-            "sync_jurisdictions",
-            dbName,
-            jurisdictionDirectory,
-        ];
-        startMessage = `Starting jurisdiction sync for **${jurisdictionDirectory}** on tenant **${dbName}**...\n\nThis may take a few minutes.`;
-    } else {
-        // No jurisdiction directory: use sync_jurisdictions_one_tenant <tenant> (syncs all configured jurisdiction directories)
-        console.log(`Running sync_jurisdictions_one_tenant for tenant '${dbName}' in environment '${environmentName}'`);
-        command = [
-            "./entrypoint.sh",
-            "execute-command",
-            "sync_jurisdictions_one_tenant",
-            dbName,
-        ];
-        startMessage = `Starting jurisdiction sync for **all configured jurisdiction directories** on tenant **${dbName}**...\n\nThis may take a few minutes.`;
-    }
+    console.log(`Running sync_jurisdictions for jurisdiction directory '${jurisdictionDirectory}' on tenant '${dbName}' in environment '${environmentName}'`);
+    const command = [
+        "./entrypoint.sh",
+        "execute-command",
+        "sync_jurisdictions",
+        jurisdictionDirectory,
+    ];
 
-    await githubHelper.addComment(startMessage);
+    await githubHelper.addComment(
+        `Starting jurisdiction sync for **${jurisdictionDirectory}** on tenant **${dbName}**...\n\nThis may take a few minutes.`
+    );
 
     const result = await ecsRunner.runCommand(command, environmentName);
 
     if (result.success) {
-        const successMsg = jurisdictionDirectory
-            ? `✅ Successfully synced jurisdiction directory **${jurisdictionDirectory}** on tenant **${dbName}**`
-            : `✅ Successfully synced all configured jurisdiction directories on tenant **${dbName}**`;
         await githubHelper.addComment(
-            `${successMsg}\n\n[View CloudWatch Logs](${result.cloudwatchUrl})`
+            `✅ Successfully synced jurisdiction directory **${jurisdictionDirectory}** on tenant **${dbName}**\n\n[View CloudWatch Logs](${result.cloudwatchUrl})`
         );
         await githubHelper.addReaction(commentId, "rocket");
     } else {
