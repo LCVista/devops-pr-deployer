@@ -188,6 +188,7 @@ export class EcsRunner {
         console.log(`Started task: ${taskArn}`);
 
         const cloudwatchUrl = this.getCloudwatchUrl(taskArn, environmentName);
+        console.log(`CloudWatch logs: ${cloudwatchUrl}`);
 
         return new Promise<EcsRunResult>((resolve, reject) => {
             const intervalId = setInterval(async () => {
