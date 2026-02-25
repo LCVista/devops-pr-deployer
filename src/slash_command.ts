@@ -7,6 +7,7 @@ import { TerraformBackend } from "./types";
 import { TFVARS_FILENAME, TerraformS3Api } from "./s3_backend_api";
 import { BACKEND_CONFIG_FILE } from "./tfc_cli";
 import { createEcsRunnerFromTerraform, TerraformEcsTaskConfig } from "./ecs_runner";
+import { findConflictingBranches, computeEnvPrefix } from "./env_name_conflict";
 
 export async function handleSlashCommand(
     tfcApi: TerraformBackend,
@@ -18,9 +19,7 @@ export async function handleSlashCommand(
 ) {
     const firstLine = commentBody.split(/\r?\n/)[0].trim()
     if (!firstLine || firstLine.length < 2 || !firstLine.startsWith('/')){
-        console.debug(
-            'The first line of the comment is not a valid slash command.'
-        )
+        console.debug('The first line of the comment is not a valid slash command.')
         return;
     }
     if (firstLine.startsWith('/help')) {
@@ -96,6 +95,9 @@ export async function handleSlashCommand(
             }
         }
 
+        // Pre-flight: check for environment name collisions with other deployed branches
+        await checkForBranchConflicts(tfcApi, prInfo);
+
         // apply the plan
         tfcCli.tfApply()
 
@@ -127,6 +129,77 @@ export async function handleSlashCommand(
         console.debug('Unknown command')
         return;
     }
+}
+
+/**
+ * Check whether any other deployed workspace would collide with the current
+ * branch's truncated environment name.  If a conflict is detected, throw an
+ * error with a clear, actionable message.
+ *
+ * Reads `env_name_prefix_length` from the repo's pr-env.tf to know the exact
+ * truncation length, then compares against all existing workspaces in S3.
+ *
+ * Best-effort — skipped silently if the backend doesn't support listing or
+ * if the prefix length can't be determined.
+ */
+async function checkForBranchConflicts(
+    tfcApi: TerraformBackend,
+    prInfo: PullRequestInfo,
+): Promise<void> {
+    if (!tfcApi.listWorkspaceBranches) {
+        console.log('Skipping branch conflict check — backend does not support listing workspaces');
+        return;
+    }
+
+    const prefixLength = readPrefixLengthFromTf();
+    if (!prefixLength) {
+        console.log('Could not read env_name_prefix_length from pr-env.tf — skipping conflict check');
+        return;
+    }
+
+    let otherBranches: string[];
+    try {
+        otherBranches = await tfcApi.listWorkspaceBranches(prInfo.branch);
+        console.log(`Found ${otherBranches.length} existing workspaces for conflict check`);
+    } catch (e: any) {
+        console.log(`Branch conflict check failed (non-fatal): ${e.message}`);
+        return;
+    }
+
+    const conflicts = findConflictingBranches(prInfo.branch, otherBranches, prefixLength);
+
+    if (conflicts.length > 0) {
+        const truncatedValue = computeEnvPrefix(prInfo.branch, prefixLength);
+        const branchList = conflicts.map((b) => `\`${b}\``).join(', ');
+        throw new Error(
+            `## ⚠️ Environment name collision detected\n\n` +
+            `Your branch \`${prInfo.branch}\` produces the same truncated environment name ` +
+            `(\`${truncatedValue}\`) as the already-deployed branch ${branchList}.\n\n` +
+            `### How to resolve\n\n` +
+            `1. **Ask the owner** of ${branchList} to run \`/destroy\` on their PR — ` +
+            `this removes the resources from their Terraform state.\n` +
+            `2. **Or rename your branch** to use a more distinct prefix.\n\n` +
+            `> **Note:** Running \`/destroy\` on *this* PR will **not** help — ` +
+            `the existing AWS resources belong to the other branch's Terraform state.`
+        );
+    }
+}
+
+/**
+ * Read `env_name_prefix_length` from the repo's pr-env.tf file.
+ * Looks for a line like: `env_name_prefix_length = 11`
+ */
+function readPrefixLengthFromTf(): number | null {
+    try {
+        const content = fs.readFileSync('pr-env.tf', 'utf-8');
+        const match = content.match(/env_name_prefix_length\s*=\s*(\d+)/);
+        if (match) {
+            return parseInt(match[1], 10);
+        }
+    } catch {
+        // file not found — not all repos have pr-env.tf
+    }
+    return null;
 }
 
 async function handleSyncJurisdictions(

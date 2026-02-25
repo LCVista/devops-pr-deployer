@@ -1,6 +1,6 @@
 import fs from "fs";
 import { ExistingVars, TerraformBackend, TFVars } from "./types";
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, NoSuchKey } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, ListObjectsV2Command, NoSuchKey } from "@aws-sdk/client-s3";
 import { ExistingVar } from "./tfc_api";
 import { Readable } from "stream";
 import { ReadableStream } from "stream/web";
@@ -109,6 +109,49 @@ export class TerraformS3Api implements TerraformBackend {
 
     private get tfStateS3Key(): string {
         return `${this.workspaceName}/${TFSTATE_FILENAME}`;
+    }
+
+    /**
+     * List all workspace branch names stored in the S3 bucket.
+     * Derives the workspace prefix from `this.workspaceName` (e.g. "zpr-mybranch" → prefix "zpr-").
+     * Returns the branch portion for every workspace that has a tfstate file.
+     */
+    public async listWorkspaceBranches(currentBranch: string): Promise<string[]> {
+        if (!this.workspaceName.endsWith(currentBranch)) {
+            return [];
+        }
+        const prefix = this.workspaceName.slice(0, -currentBranch.length);
+
+        const branches: string[] = [];
+        let continuationToken: string | undefined;
+
+        do {
+            const resp = await this.s3Client.send(
+                new ListObjectsV2Command({
+                    Bucket: this.s3Bucket,
+                    Prefix: prefix,
+                    ContinuationToken: continuationToken,
+                }),
+            );
+
+            for (const obj of resp.Contents ?? []) {
+                const key = obj.Key ?? '';
+                // Match keys like  zpr-branchname/terraform.tfstate
+                if (key.endsWith('/terraform.tfstate')) {
+                    const withoutSuffix = key.slice(0, -'/terraform.tfstate'.length);
+                    const branch = withoutSuffix.startsWith(prefix)
+                        ? withoutSuffix.slice(prefix.length)
+                        : withoutSuffix;
+                    if (branch) {
+                        branches.push(branch);
+                    }
+                }
+            }
+
+            continuationToken = resp.IsTruncated ? resp.NextContinuationToken : undefined;
+        } while (continuationToken);
+
+        return branches;
     }
 
     private async updateExistingVars(name: string, value): Promise<boolean> {
