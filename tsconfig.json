@@ -12,5 +12,5 @@
     "noImplicitAny": false,
     "esModuleInterop": true
   },
-  "exclude": ["__test__", "dist", "lib", "node_modules"]
+  "exclude": ["__test__", "dist", "lib", "node_modules", "test"]
 }
