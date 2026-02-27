@@ -7,6 +7,7 @@ import { TerraformBackend } from "./types";
 import { TFVARS_FILENAME, TerraformS3Api } from "./s3_backend_api";
 import { BACKEND_CONFIG_FILE } from "./tfc_cli";
 import { createEcsRunnerFromTerraform, TerraformEcsTaskConfig } from "./ecs_runner";
+import { fetchLastLogError } from "./cloudwatch_logs";
 import { findConflictingBranches, computeEnvPrefix } from "./env_name_conflict";
 
 export async function handleSlashCommand(
@@ -276,9 +277,12 @@ async function handleSyncJurisdictions(
         );
         await githubHelper.addReaction(commentId, "rocket");
     } else {
+        const lastLogError = await fetchLastLogError(result.taskArn, environmentName);
+
         throw new Error(
             `Jurisdiction sync failed with exit code ${result.exitCode}\n\n` +
-            `[View CloudWatch Logs](${result.cloudwatchUrl})`
+            `### Last Log Error\n\n${lastLogError}\n\n` +
+            `[View Full CloudWatch Logs](${result.cloudwatchUrl})`
         );
     }
 }

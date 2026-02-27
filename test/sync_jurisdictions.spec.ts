@@ -24,7 +24,13 @@ jest.mock("../src/ecs_runner", () => {
     };
 });
 
+// Mock cloudwatch_logs module
+jest.mock("../src/cloudwatch_logs", () => ({
+    fetchLastLogError: jest.fn().mockResolvedValue("(no log output captured)")
+}));
+
 import { createEcsRunnerFromTerraform } from "../src/ecs_runner";
+import { fetchLastLogError } from "../src/cloudwatch_logs";
 
 // Mock S3 client for TerraformS3Api
 const s3Mock = mockClient(S3Client);
@@ -271,7 +277,12 @@ describe('Sync Jurisdictions', () => {
         expect(createEcsRunnerFromTerraform).not.toHaveBeenCalled();
     });
 
-    test('handle /sync-jurisdictions with ECS task failure', async () => {
+    test('handle /sync-jurisdictions with ECS task failure includes last log error', async () => {
+        // Mock fetchLastLogError to return an error line
+        (fetchLastLogError as jest.Mock).mockResolvedValue(
+            "django.db.utils.IntegrityError: duplicate key value"
+        );
+
         // Mock ECS runner to fail
         (createEcsRunnerFromTerraform as jest.Mock).mockImplementation((config) => ({
             runCommand: jest.fn().mockResolvedValue({
@@ -295,14 +306,22 @@ describe('Sync Jurisdictions', () => {
         const command = "/sync-jurisdictions texas";
         const commentId = 534;
 
-        await expect(handleSlashCommand(
-            mockedTfS3Api,
-            mockedTerraformCli,
-            mockedGithubHelper,
-            prInfo,
-            commentId,
-            command
-        )).rejects.toThrow("Jurisdiction sync failed with exit code 1");
+        try {
+            await handleSlashCommand(
+                mockedTfS3Api,
+                mockedTerraformCli,
+                mockedGithubHelper,
+                prInfo,
+                commentId,
+                command
+            );
+            fail("Expected handleSlashCommand to throw");
+        } catch (e: any) {
+            expect(e.message).toContain("Jurisdiction sync failed with exit code 1");
+            expect(e.message).toContain("Last Log Error");
+            expect(e.message).toContain("IntegrityError");
+            expect(e.message).toContain("View Full CloudWatch Logs");
+        }
     });
 
     test('handle /sync-jurisdictions without management role shows error', async () => {
