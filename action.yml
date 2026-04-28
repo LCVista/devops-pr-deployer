@@ -4,9 +4,12 @@ inputs:
   gh_comment_token:
     description: 'The token used to add comments (does not need to be PAT)'
     required: true
+  gh_private_token:
+    description: 'The token used to read private terraform modules. Supports GitHub App installation tokens or PATs.'
+    required: false
   gh_pat_token:
-    description: 'The token used to read private terraform modules'
-    required: true
+    description: '[Deprecated] Use gh_private_token. The token used to read private terraform modules.'
+    required: false
   gh_org_name:
     description: 'The organization name where private terraform modules are located'
     required: true
@@ -54,15 +57,23 @@ runs:
     - uses: actions/checkout@v3
       with:
         ref: ${{ steps.refs.outputs.head_sha }}
+        persist-credentials: false
     - name: Add token for private terraform modules
       id: add-gh-private-token
       shell: 'bash'
-      # git config --global url."https://${GH_TOKEN}@github.com/${GH_ORG_NAME}".insteadOf "https://github.com/${GH_ORG_NAME}"
       run: |
-        git config --local --remove-section http."https://github.com/"
-        git config --global url."https://${GH_TOKEN}@github.com".insteadOf "https://github.com"
+        MODULE_TOKEN="${GH_PRIVATE_TOKEN:-$GH_PAT_TOKEN}"
+        if [ -z "$MODULE_TOKEN" ]; then
+          echo "::error::Missing gh_private_token (or legacy gh_pat_token)"
+          exit 1
+        fi
+
+        git config --local --remove-section http."https://github.com/" || true
+        git config --global url."https://x-access-token:${MODULE_TOKEN}@github.com/${GH_ORG_NAME}/".insteadOf "https://github.com/${GH_ORG_NAME}/"
+        git config --global url."https://x-access-token:${MODULE_TOKEN}@github.com/${GH_ORG_NAME}/".insteadOf "git@github.com:${GH_ORG_NAME}/"
       env:
-        GH_TOKEN: ${{ inputs.gh_pat_token }}
+        GH_PRIVATE_TOKEN: ${{ inputs.gh_private_token }}
+        GH_PAT_TOKEN: ${{ inputs.gh_pat_token }}
         GH_ORG_NAME: ${{ inputs.gh_org_name }}
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3.0.0
