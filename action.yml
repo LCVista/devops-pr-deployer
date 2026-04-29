@@ -6,7 +6,10 @@ inputs:
     required: true
   gh_private_token:
     description: 'The token used to read private terraform modules. Supports GitHub App installation tokens or PATs.'
-    required: true
+    required: false
+  gh_pat_token:
+    description: 'The token used to read private terraform modules. [Deprecated]'
+    required: false
   gh_org_name:
     description: 'The organization name where private terraform modules are located'
     required: true
@@ -54,7 +57,7 @@ runs:
     - uses: actions/checkout@v3
       with:
         ref: ${{ steps.refs.outputs.head_sha }}
-        persist-credentials: false
+        persist-credentials: true
     - name: Add token for private terraform modules
       id: add-gh-private-token
       shell: 'bash'
@@ -67,7 +70,7 @@ runs:
         git config --local --remove-section http."https://github.com/" || true
         git config --global url."https://x-access-token:${GH_PRIVATE_TOKEN}@github.com/${GH_ORG_NAME}/".insteadOf "https://github.com/${GH_ORG_NAME}/"
       env:
-        GH_PRIVATE_TOKEN: ${{ inputs.gh_private_token }}
+        GH_PRIVATE_TOKEN: ${{ inputs.gh_private_token || inputs.gh_pat_token }}
         GH_ORG_NAME: ${{ inputs.gh_org_name }}
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3.0.0
@@ -96,3 +99,4 @@ runs:
 branding:
   icon: 'target'
   color: 'gray-dark'
+
