@@ -11,7 +11,8 @@
  *   `trim(lower(substr(var.git_branch, 0, length)), " -")`
  */
 export function computeEnvPrefix(branch: string, length: number): string {
-    const truncated = branch.substring(0, length);
+    const typeRemoved = branch.replace(/^[a-zA-Z]+\//, '');
+    const truncated = typeRemoved.substring(0, length);
     const lowered = truncated.toLowerCase();
     return lowered.replace(/^[\s-]+|[\s-]+$/g, '');
 }
