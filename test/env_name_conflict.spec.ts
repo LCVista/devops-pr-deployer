@@ -34,6 +34,11 @@ describe('env_name_conflict', () => {
             expect(computeEnvPrefix('', 11)).toBe('');
         });
 
+        it('should strip feature type prefix before truncating', () => {
+            expect(computeEnvPrefix('bug/LCV-1971-v2-dashboard-bug', 10)).toBe('lcv-1971-v');
+            expect(computeEnvPrefix('feature/JUR-1998-new-hampshire-cle', 11)).toBe('jur-1998-ne');
+        });
+
         it('should replicate lcv pr-env.tf formula (substr 10)', () => {
             const a = computeEnvPrefix('Chessling-patch-1', 10);
             const b = computeEnvPrefix('Chessling-patch-2', 10);

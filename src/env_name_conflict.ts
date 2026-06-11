@@ -8,7 +8,7 @@
 
 /**
  * Replicate the Terraform environment-name computation:
- *   `trim(lower(substr(var.git_branch, 0, length)), " -")`
+ *   `trim(lower(substr(replace(var.git_branch, "/^[a-zA-Z]+\\//", ""), 0, length)), " -")`
  */
 export function computeEnvPrefix(branch: string, length: number): string {
     const typeRemoved = branch.replace(/^[a-zA-Z]+\//, '');
